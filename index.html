@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Symmetry Playoffs: Knicks vs. Lakers</title>
+    <style>
+        :root {
+            --knicks-orange: #F58426;
+            --knicks-blue: #006BB6;
+            --lakers-purple: #552583;
+            --lakers-gold: #FDB927;
+            --bg-dark: #121212;
+            --text-white: #FFFFFF;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-white);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--knicks-blue);
+            width: 100%;
+            padding: 10px 0;
+            text-align: center;
+            border-bottom: 3px solid var(--knicks-orange);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 900;
+            color: var(--text-white);
+            text-shadow: 1px 1px 0 var(--knicks-orange);
+        }
+
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 95%;
+            max-width: 600px;
+            margin: 10px 0;
+            background: #1e1e1e;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .shot-clock-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            border: 1px solid #444;
+            padding: 2px 10px;
+            border-radius: 4px;
+        }
+
+        .shot-clock-label {
+            font-size: 0.6rem;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 0px;
+        }
+
+        .shot-clock-value {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ff0000;
+            line-height: 1;
+        }
+
+        .shot-clock-value.warning {
+            animation: blink 0.5s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        .team {
+            text-align: center;
+            flex: 1;
+        }
+
+        .team-name {
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .knicks .team-name { color: var(--knicks-orange); }
+        .lakers .team-name { color: var(--lakers-gold); }
+
+        .score {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: #000;
+            color: #ff0000;
+            padding: 5px 15px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            display: inline-block;
+            min-width: 60px;
+            line-height: 1;
+        }
+
+        .vs {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #666;
+            padding: 0 15px;
+        }
+
+        .game-container {
+            width: 95%;
+            max-width: 600px;
+            background: #252525;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            border: 1px solid #444;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            overflow-y: auto;
+        }
+
+        .level-indicator {
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--knicks-orange);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+
+        .question-box {
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .pattern-container {
+            width: 100%;
+            height: 120px;
+            background: #eee;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border: 1px solid #444;
+        }
+
+        .pattern-container svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .question-text {
+            font-size: 1rem;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .option-btn {
+            background-color: #333;
+            border: 2px solid #552583;
+            color: white;
+            padding: 10px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        .option-btn:hover {
+            background-color: var(--knicks-blue);
+            border-color: var(--knicks-orange);
+            transform: translateY(-2px);
+        }
+
+        .option-btn:active {
+            transform: translateY(0);
+        }
+
+        .feedback {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .feedback.swish {
+            background-color: rgba(0, 107, 182, 0.2);
+            border: 2px solid var(--knicks-blue);
+            color: var(--knicks-orange);
+        }
+
+        .feedback.brick {
+            background-color: rgba(85, 37, 131, 0.2);
+            border: 2px solid var(--lakers-purple);
+            color: var(--lakers-gold);
+        }
+
+        .next-btn {
+            display: none;
+            margin: 10px auto 0;
+            background-color: var(--knicks-orange);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .next-btn:hover {
+            background-color: #e0731b;
+        }
+
+        .game-over {
+            text-align: center;
+            display: none;
+        }
+
+        .game-over h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--knicks-orange);
+        }
+
+        .restart-btn {
+            background-color: var(--knicks-blue);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.5rem; }
+            .score { font-size: 2.5rem; min-width: 70px; }
+            .question-text { font-size: 1.1rem; }
+            .option-btn { font-size: 0.9rem; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>The Symmetry Playoffs</h1>
+    </header>
+
+    <div class="scoreboard">
+        <div class="team knicks">
+            <div class="team-name">NY Knicks</div>
+            <div id="knicks-score" class="score">00</div>
+        </div>
+        
+        <div class="shot-clock-container">
+            <div class="shot-clock-label">Shot Clock</div>
+            <div id="shot-clock" class="shot-clock-value">24</div>
+        </div>
+
+        <div class="team lakers">
+            <div class="team-name">LA Lakers</div>
+            <div id="lakers-score" class="score">00</div>
+        </div>
+    </div>
+
+    <div class="game-container" id="game-container">
+        <div id="level-indicator" class="level-indicator">Level 1: Rookie Season</div>
+        
+        <div class="question-box">
+            <div id="pattern-container" class="pattern-container" style="display: none;"></div>
+            <div id="question-text" class="question-text">Loading question...</div>
+        </div>
+
+        <div id="options-grid" class="options-grid">
+            <!-- Options will be injected here -->
+        </div>
+
+        <div id="feedback" class="feedback"></div>
+        
+        <button id="next-btn" class="next-btn">Next Play</button>
+
+        <div id="game-over" class="game-over">
+            <h2 id="final-result">Game Over!</h2>
+            <p id="final-stats"></p>
+            <button onclick="location.reload()" class="restart-btn">New Season</button>
+        </div>
+    </div>
+
+    <script>
+        const GROUND_TRUTH = [
+            { id: 'p1', system: 'Oblique', description: 'No rotation, no mirrors, no glides. (Only translation).', rotations: 'No', mirrors: 'No', glides: 'No' },
+            { id: 'p2', system: 'Oblique', description: '2-fold (180°) rotation ONLY. No mirrors, no glides.', rotations: '2-fold', mirrors: 'No', glides: 'No' },
+            { id: 'pm', system: 'Rectangular', description: 'No rotation. Parallel mirror lines ONLY.', rotations: 'No', mirrors: 'Parallel mirror lines', glides: 'No' },
+            { id: 'pg', system: 'Rectangular', description: 'No rotation. Parallel glide reflection lines ONLY.', rotations: 'No', mirrors: 'No', glides: 'Parallel glide reflection lines' },
+            { id: 'cm', system: 'Rectangular', description: 'No rotation. Parallel mirror lines, parallel glide lines (centered lattice).', rotations: 'No', mirrors: 'Parallel mirror lines', glides: 'Parallel glide lines' },
+            { id: 'pmm', system: 'Rectangular', description: '2-fold rotation. Two perpendicular mirror lines.', rotations: '2-fold', mirrors: 'Two perpendicular mirror lines', glides: 'No' },
+            { id: 'pmg', system: 'Rectangular', description: '2-fold rotation. Mirror line and perpendicular glide line.', rotations: '2-fold', mirrors: 'Mirror line', glides: 'Perpendicular glide line' },
+            { id: 'pgg', system: 'Rectangular', description: '2-fold rotation. Two perpendicular glide lines. No mirror lines.', rotations: '2-fold', mirrors: 'No', glides: 'Two perpendicular glide lines' },
+            { id: 'cmm', system: 'Rectangular', description: '2-fold rotation. Two perpendicular mirror lines (centered lattice).', rotations: '2-fold', mirrors: 'Two perpendicular mirror lines', glides: 'No' },
+            { id: 'p4', system: 'Square', description: '4-fold (90°) rotation ONLY. No mirrors, no glides.', rotations: '4-fold', mirrors: 'No', glides: 'No' },
+            { id: 'p4m', system: 'Square', description: '4-fold rotation. Mirrors intersecting at 45°.', rotations: '4-fold', mirrors: 'Mirrors intersecting at 45°', glides: 'Yes' },
+            { id: 'p4g', system: 'Square', description: '4-fold rotation. Mirrors intersecting at 90°, plus glide lines.', rotations: '4-fold', mirrors: 'Mirrors intersecting at 90°', glides: 'Glide lines' },
+            { id: 'p3', system: 'Hexagonal', description: '3-fold (120°) rotation ONLY. No mirrors, no glides.', rotations: '3-fold', mirrors: 'No', glides: 'No' },
+            { id: 'p3m1', system: 'Hexagonal', description: '3-fold rotation. Mirrors present. All rotation centers lie ON mirror lines.', rotations: '3-fold', mirrors: 'Mirrors present (on centers)', glides: 'Yes' },
+            { id: 'p31m', system: 'Hexagonal', description: '3-fold rotation. Mirrors present. Some rotation centers do NOT lie on mirror lines.', rotations: '3-fold', mirrors: 'Mirrors present (some not on centers)', glides: 'Yes' },
+            { id: 'p6', system: 'Hexagonal', description: '6-fold (60°) rotation ONLY. No mirrors, no glides.', rotations: '6-fold', mirrors: 'No', glides: 'No' },
+            { id: 'p6m', system: 'Hexagonal', description: '6-fold rotation. Mirrors intersecting at 30°.', rotations: '6-fold', mirrors: 'Mirrors intersecting at 30°', glides: 'Yes' }
+        ];
+
+        let knicksScore = 0;
+        let lakersScore = 0;
+        let currentQuestionIndex = 0;
+        let questions = [];
+        let timerInterval;
+        let timeLeft = 24;
+
+        function initGame() {
+            // Level 1 questions: Pure Recognition (Pattern -> Code)
+            const level1 = GROUND_TRUTH.map(item => ({
+                level: 1,
+                text: `RECOGNIZE THE WALLPAPER GROUP FROM THE PATTERN BELOW:`,
+                correct: item.id,
+                options: shuffle([...new Set(GROUND_TRUTH.map(g => g.id))]).slice(0, 4)
+            }));
+            // Ensure correct answer is in options
+            level1.forEach(q => { if(!q.options.includes(q.correct)) q.options[0] = q.correct; q.options = shuffle(q.options); });
+
+            // Level 2 questions: Targeted Operations
+            const level2 = [
+                { level: 2, text: "Does the pgg group contain any mirror lines?", correct: "No", options: ["Yes", "No"] },
+                { level: 2, text: "Does the p4 group contain any glide reflections?", correct: "No", options: ["Yes", "No"] },
+                { level: 2, text: "Does the p3m1 group have all rotation centers on mirror lines?", correct: "Yes", options: ["Yes", "No"] },
+                { level: 2, text: "Does the p31m group have some rotation centers not on mirror lines?", correct: "Yes", options: ["Yes", "No"] },
+                { level: 2, text: "Does the p6m group have mirrors intersecting at 30°?", correct: "Yes", options: ["Yes", "No"] },
+                { level: 2, text: "Does the p4m group have mirrors intersecting at 45°?", correct: "Yes", options: ["Yes", "No"] },
+                { level: 2, text: "Does the p4g group have mirrors intersecting at 90°?", correct: "Yes", options: ["Yes", "No"] },
+                { level: 2, text: "Does the cm group have a centered lattice?", correct: "Yes", options: ["Yes", "No"] },
+                { level: 2, text: "Does the pmg group have perpendicular mirror and glide lines?", correct: "Yes", options: ["Yes", "No"] },
+                { level: 2, text: "Does the p1 group contain any rotations?", correct: "No", options: ["Yes", "No"] }
+            ];
+
+            // Level 3 questions: Code -> System
+            const systems = ["Oblique", "Rectangular", "Square", "Hexagonal"];
+            const level3 = GROUND_TRUTH.map(item => ({
+                level: 3,
+                text: `To which crystal system does the ${item.id} group belong?`,
+                correct: item.system,
+                options: shuffle(systems)
+            }));
+
+            questions = [...shuffle(level1).slice(0, 5), ...shuffle(level2).slice(0, 5), ...shuffle(level3).slice(0, 5)];
+            showQuestion();
+        }
+
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 24;
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleViolation();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const timerEl = document.getElementById('shot-clock');
+            timerEl.innerText = timeLeft.toString().padStart(2, '0');
+            if (timeLeft <= 5) {
+                timerEl.classList.add('warning');
+            } else {
+                timerEl.classList.remove('warning');
+            }
+        }
+
+        function handleViolation() {
+            const feedback = document.getElementById('feedback');
+            const grid = document.getElementById('options-grid');
+            const patternContainer = document.getElementById('pattern-container');
+            const q = questions[currentQuestionIndex];
+            
+            grid.style.display = 'none';
+            patternContainer.style.display = 'none';
+            feedback.style.display = 'block';
+            
+            lakersScore += 2;
+            feedback.className = 'feedback brick';
+            feedback.innerText = `SHOT CLOCK VIOLATION! Lakers get the ball! You ran out of time. (Correct: ${q.correct})`;
+            
+            updateScore();
+            document.getElementById('next-btn').style.display = 'block';
+        }
+
+        function showQuestion() {
+            const q = questions[currentQuestionIndex];
+            const patternContainer = document.getElementById('pattern-container');
+            
+            document.getElementById('level-indicator').innerText = `Level ${q.level}: ${q.level === 1 ? 'Pure Recognition' : q.level === 2 ? 'All-Star Operations' : 'The Finals'}`;
+            document.getElementById('question-text').innerText = q.text;
+            
+            if (q.level === 1) {
+                patternContainer.style.display = 'flex';
+                patternContainer.innerHTML = generatePatternSVG(q.correct);
+            } else {
+                patternContainer.style.display = 'none';
+            }
+
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                // Add * for testing purposes
+                btn.innerText = opt === q.correct ? `${opt} *` : opt;
+                btn.onclick = () => handleAnswer(opt);
+                grid.appendChild(btn);
+            });
+
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+            grid.style.display = 'grid';
+            
+            startTimer();
+        }
+
+        function handleAnswer(selected) {
+            clearInterval(timerInterval);
+            const q = questions[currentQuestionIndex];
+            const feedback = document.getElementById('feedback');
+            const grid = document.getElementById('options-grid');
+            const patternContainer = document.getElementById('pattern-container');
+            
+            grid.style.display = 'none';
+            patternContainer.style.display = 'none';
+            feedback.style.display = 'block';
+
+            if (selected === q.correct) {
+                knicksScore += 3;
+                feedback.className = 'feedback swish';
+                feedback.innerText = `SWISH! Knicks score! ${q.correct}: ${GROUND_TRUTH.find(g => g.id === q.correct).description}`;
+            } else {
+                lakersScore += 2;
+                feedback.className = 'feedback brick';
+                feedback.innerText = `BRICK! LeBron James scores! (Correct: ${q.correct} - ${GROUND_TRUTH.find(g => g.id === q.correct).description})`;
+            }
+
+            updateScore();
+            document.getElementById('next-btn').style.display = 'block';
+        }
+
+        function updateScore() {
+            document.getElementById('knicks-score').innerText = knicksScore.toString().padStart(2, '0');
+            document.getElementById('lakers-score').innerText = lakersScore.toString().padStart(2, '0');
+        }
+
+        document.getElementById('next-btn').onclick = () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                showGameOver();
+            }
+        };
+
+        function showGameOver() {
+            document.getElementById('level-indicator').style.display = 'none';
+            document.getElementById('question-text').style.display = 'none';
+            document.getElementById('options-grid').style.display = 'none';
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+            
+            const gameOver = document.getElementById('game-over');
+            gameOver.style.display = 'block';
+            
+            const result = document.getElementById('final-result');
+            if (knicksScore > lakersScore) {
+                result.innerText = "KNICKS WIN THE CHAMPIONSHIP!";
+                result.style.color = "var(--knicks-orange)";
+            } else if (lakersScore > knicksScore) {
+                result.innerText = "LAKERS TAKE THE RING!";
+                result.style.color = "var(--lakers-gold)";
+            } else {
+                result.innerText = "IT'S A DRAW! OVERTIME?";
+            }
+            
+            document.getElementById('final-stats').innerText = `Final Score: Knicks ${knicksScore} - Lakers ${lakersScore}`;
+        }
+
+        function generatePatternSVG(groupId) {
+            const colors = ['#F58426', '#006BB6', '#552583', '#FDB927'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            let svg = `<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+                <rect width="200" height="100" fill="#f0f0f0" />`;
+
+            const motif = `<path d="M 5,5 L 15,5 L 10,15 Z" fill="${color}" stroke="#000" stroke-width="1" />`;
+            
+            // Grid spacing
+            const dx = 40;
+            const dy = 40;
+            
+            for (let i = 0; i < 6; i++) {
+                for (let j = 0; j < 4; j++) {
+                    const x = i * dx;
+                    const y = j * dy;
+                    
+                    // Base motif
+                    svg += `<g transform="translate(${x}, ${y})">${motif}</g>`;
+                    
+                    // Add symmetry-specific variations
+                    if (groupId === 'p2') {
+                        svg += `<g transform="translate(${x}, ${y}) rotate(180, 20, 20)">${motif}</g>`;
+                    } else if (groupId === 'pm') {
+                        svg += `<g transform="translate(${x}, ${y}) scale(-1, 1) translate(-40, 0)">${motif}</g>`;
+                    } else if (groupId === 'pg') {
+                        if (i % 2 === 1) svg += `<g transform="translate(${x}, ${y}) scale(-1, 1) translate(-40, 20)">${motif}</g>`;
+                    } else if (groupId === 'pmm') {
+                        svg += `<g transform="translate(${x}, ${y}) scale(-1, 1) translate(-40, 0)">${motif}</g>`;
+                        svg += `<g transform="translate(${x}, ${y}) scale(1, -1) translate(0, -40)">${motif}</g>`;
+                        svg += `<g transform="translate(${x}, ${y}) scale(-1, -1) translate(-40, -40)">${motif}</g>`;
+                    } else if (groupId === 'p4') {
+                        svg += `<g transform="translate(${x}, ${y}) rotate(90, 20, 20)">${motif}</g>`;
+                        svg += `<g transform="translate(${x}, ${y}) rotate(180, 20, 20)">${motif}</g>`;
+                        svg += `<g transform="translate(${x}, ${y}) rotate(270, 20, 20)">${motif}</g>`;
+                    } else if (groupId === 'p3') {
+                        svg += `<g transform="translate(${x}, ${y}) rotate(120, 20, 20)">${motif}</g>`;
+                        svg += `<g transform="translate(${x}, ${y}) rotate(240, 20, 20)">${motif}</g>`;
+                    } else if (groupId === 'p6') {
+                        for (let angle = 60; angle < 360; angle += 60) {
+                            svg += `<g transform="translate(${x}, ${y}) rotate(${angle}, 20, 20)">${motif}</g>`;
+                        }
+                    } else if (groupId === 'p3m1' || groupId === 'p31m') {
+                        svg += `<g transform="translate(${x}, ${y}) rotate(120, 20, 20)">${motif}</g>`;
+                        svg += `<g transform="translate(${x}, ${y}) rotate(240, 20, 20)">${motif}</g>`;
+                        svg += `<g transform="translate(${x}, ${y}) scale(-1, 1) translate(-40, 0)">${motif}</g>`;
+                    } else if (groupId === 'cm') {
+                        svg += `<g transform="translate(${x+20}, ${y+20})">${motif}</g>`;
+                    } else if (groupId === 'pmg') {
+                        svg += `<g transform="translate(${x}, ${y}) scale(-1, 1) translate(-40, 0)">${motif}</g>`;
+                        if (i % 2 === 1) svg += `<g transform="translate(${x}, ${y}) rotate(180, 20, 20)">${motif}</g>`;
+                    } else if (groupId === 'pgg') {
+                        if (i % 2 === 1) svg += `<g transform="translate(${x}, ${y}) scale(-1, 1) translate(-40, 20)">${motif}</g>`;
+                        if (j % 2 === 1) svg += `<g transform="translate(${x}, ${y}) scale(1, -1) translate(20, -40)">${motif}</g>`;
+                    } else if (groupId === 'p4m') {
+                        for (let angle = 0; angle < 360; angle += 90) {
+                            svg += `<g transform="translate(${x}, ${y}) rotate(${angle}, 20, 20)">${motif}</g>`;
+                            svg += `<g transform="translate(${x}, ${y}) rotate(${angle}, 20, 20) scale(-1, 1) translate(-40, 0)">${motif}</g>`;
+                        }
+                    } else if (groupId === 'p6m') {
+                        for (let angle = 0; angle < 360; angle += 60) {
+                            svg += `<g transform="translate(${x}, ${y}) rotate(${angle}, 20, 20)">${motif}</g>`;
+                            svg += `<g transform="translate(${x}, ${y}) rotate(${angle}, 20, 20) scale(-1, 1) translate(-40, 0)">${motif}</g>`;
+                        }
+                    }
+                }
+            }
+            
+            svg += `</svg>`;
+            return svg;
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
