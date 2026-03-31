@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: patterns
+    // Document ID: auto-generated
+    // Fields:
+    //   - group: string (required) - Hermann-Mauguin group name
+    //   - style: string (required) - Visual style
+    //   - svg: string (required) - SVG content
+    //   - createdAt: timestamp (required) - Creation time
+    //
+    // ===============================================================
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isValidPattern(data) {
+      return data.group is string && data.group.size() > 0 && data.group.size() < 10 &&
+             data.style is string && data.style.size() > 0 && data.style.size() < 50 &&
+             data.svg is string && data.svg.size() > 0 && data.svg.size() < 1000000 &&
+             data.createdAt is timestamp;
+    }
+
+    match /patterns/{patternId} {
+      // Allow authenticated users to read and create patterns
+      // We allow any authenticated user to contribute to the shared database
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidPattern(request.resource.data);
+      
+      // Updates and deletes are restricted to admins for now
+      allow update, delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "beingphileas@gmail.com" && request.auth.token.email_verified == true));
+    }
+  }
+}

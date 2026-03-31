@@ -1,0 +1,35 @@
+{
+  "entities": {
+    "Pattern": {
+      "title": "Pattern",
+      "description": "A generated crystallographic pattern.",
+      "type": "object",
+      "properties": {
+        "group": {
+          "type": "string",
+          "description": "The Hermann-Mauguin wallpaper group name (e.g., p1, p2, p4m)."
+        },
+        "style": {
+          "type": "string",
+          "description": "The visual style of the pattern (e.g., pen-stroke)."
+        },
+        "svg": {
+          "type": "string",
+          "description": "The full SVG string of the pattern."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the pattern was generated and saved."
+        }
+      },
+      "required": ["group", "style", "svg", "createdAt"]
+    }
+  },
+  "firestore": {
+    "patterns": {
+      "schema": "Pattern",
+      "description": "Collection of validated crystallographic patterns."
+    }
+  }
+}

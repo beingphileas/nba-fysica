@@ -403,6 +403,15 @@
         </div>
     </div>
 
+    <!-- Auth Overlay -->
+    <div id="auth-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;">
+        <h1 style="color: var(--lakers-gold); margin-bottom: 20px; font-family: 'Impact', sans-serif; font-size: 2.5rem;">THE SYMMETRY DYNASTY</h1>
+        <p style="color: white; margin-bottom: 30px; font-size: 1.2rem;">Sign in to enter the arena and start your dynasty.</p>
+        <button onclick="signIn()" style="background: var(--knicks-orange); color: white; border: none; padding: 15px 30px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(245, 132, 38, 0.4);">
+            SIGN IN WITH GOOGLE
+        </button>
+    </div>
+
     <!-- API Key Modal -->
     <div class="overlay" id="api-key-overlay" style="display: none; z-index: 300;">
         <div class="popup-card">
@@ -437,7 +446,73 @@
     </div>
 
     <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { GoogleGenAI } from "@google/genai";
+        import firebaseConfig from "./firebase-applet-config.json";
+
+        // Firebase Initialization Check
+        const useFirebase = !!(firebaseConfig && firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.firestoreDatabaseId && firebaseConfig.apiKey !== "TODO_KEYHERE");
+        let db = null;
+        let auth = null;
+        let provider = null;
+
+        if (useFirebase) {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+                auth = getAuth(app);
+                provider = new GoogleAuthProvider();
+
+                // Auth state management
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        console.log("User authenticated:", user.uid);
+                        document.getElementById('auth-overlay').style.display = 'none';
+                        if (!state.gameStarted) {
+                            const storedKey = sessionStorage.getItem('GEMINI_API_KEY');
+                            if (storedKey) {
+                                state.gameStarted = true;
+                                loadPlay();
+                            } else {
+                                document.getElementById('api-key-overlay').style.display = 'flex';
+                            }
+                        }
+                    } else {
+                        console.log("User not authenticated");
+                        document.getElementById('auth-overlay').style.display = 'flex';
+                    }
+                });
+            } catch (e) {
+                console.error("Firebase initialization failed:", e);
+                // Fallback to no-firebase mode
+                document.getElementById('auth-overlay').style.display = 'none';
+                state.gameStarted = true;
+                loadPlay();
+            }
+        } else {
+            console.warn("Firebase config missing or invalid. Running in local mode.");
+            // Bypass auth and start game
+            setTimeout(() => {
+                document.getElementById('auth-overlay').style.display = 'none';
+                state.gameStarted = true;
+                loadPlay();
+            }, 500);
+        }
+
+        window.signIn = async () => {
+            if (!useFirebase || !auth) {
+                alert("Firebase is not configured. Sign-in is disabled.");
+                return;
+            }
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Auth error:", error);
+                alert("Failed to sign in. Please try again.");
+            }
+        };
 
         /* --- GROUND TRUTH DATA --- */
         const GROUPS = {
@@ -478,7 +553,8 @@
             isPaused: false,
             pendingExplanation: null,
             preloadedPlayPromise: null,
-            preloadedPlayData: null
+            preloadedPlayData: null,
+            gameStarted: false
         };
 
         const KNICKS_PLAYERS = ["Jalen Brunson", "Julius Randle", "OG Anunoby", "Josh Hart", "Donte DiVincenzo", "Mitchell Robinson"];
@@ -638,15 +714,95 @@
             return true;
         }
 
+        async function fetchOrGenerateSVG(targetGroup, style = 'complex') {
+            const FIRESTORE_READ_TIMEOUT = 2000; // 2 seconds as requested
+            
+            const withTimeout = (promise, timeoutMs) => {
+                return Promise.race([
+                    promise,
+                    new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), timeoutMs))
+                ]);
+            };
+
+            // 1. Instant Local Check
+            if (!useFirebase || !db) {
+                return generateProceduralSVG(targetGroup, style);
+            }
+
+            // Show loading overlay for the duration of the potential wait
+            document.getElementById('loading-overlay').style.display = 'flex';
+
+            try {
+                // 2. Parallel Execution (Race DB vs 2s Timeout)
+                let querySnapshot = null;
+                try {
+                    console.log(`Fetching pattern for ${targetGroup}...`);
+                    const q = query(collection(db, "patterns"), where("group", "==", targetGroup), where("style", "==", style));
+                    querySnapshot = await withTimeout(getDocs(q), FIRESTORE_READ_TIMEOUT);
+                } catch (e) {
+                    // Error Silencing: Catch all Firestore errors silently
+                    console.warn("Firestore read slow or failed. Falling back to local generation.");
+                }
+                
+                // 3. Cache Hit
+                if (querySnapshot && !querySnapshot.empty) {
+                    console.log(`Cache hit for ${targetGroup}`);
+                    const docs = [];
+                    querySnapshot.forEach(doc => docs.push(doc.data()));
+                    return pick(docs).svg;
+                }
+
+                // 4. Cache Miss / Timeout Fallback
+                console.log(`Cache miss/timeout for ${targetGroup}. Generating locally...`);
+                const generatedSvg = generateProceduralSVG(targetGroup, style);
+
+                // 5. Self-Feeding Mechanism (Background Task)
+                // We return immediately, and validate/save in the background
+                (async () => {
+                    try {
+                        const isValid = await validateWithGemini(generatedSvg, targetGroup);
+                        if (isValid) {
+                            await addDoc(collection(db, "patterns"), { 
+                                group: targetGroup, 
+                                style: style, 
+                                svg: generatedSvg,
+                                createdAt: new Date()
+                            });
+                            console.log(`Background save complete for ${targetGroup}.`);
+                        }
+                    } catch (err) {
+                        // Silent error silencing for background tasks
+                    }
+                })();
+
+                return generatedSvg;
+
+            } catch (error) {
+                // 6. Error Silencing: Catch all errors and fallback
+                console.error("DB/AI Error (Silenced):", error);
+                return generateProceduralSVG(targetGroup, style);
+            } finally {
+                // ALWAYS use a finally block to guarantee the loading screen is hidden
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
+
         // Generates a mathematically accurate SVG string for a given group
         // To save tokens while providing infinite visual variety, we use a procedural SVG builder
         // that applies SVG transforms (<use>) to a randomized base motif.
-        function generateProceduralSVG(group) {
+        function generateProceduralSVG(group, style = 'complex') {
             const colors = ['#FF3B30', '#007AFF', '#34C759', '#FF9500', '#AF52DE', '#FF2D55'];
             const color = pick(colors);
             
-            // "EscherSketch" digital pen stroke motif
-            let motif = `<path d="M 8,8 Q 20,12 15,25" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" />`;
+            let motif = '';
+            if (style === 'simple') {
+                // LEVEL 1 VISUALS: Skeletal L-bracket for clarity
+                motif = `<path d="M 10,10 L 10,40 L 40,40" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round" />`;
+            } else {
+                // "EscherSketch" digital pen stroke motif (Complex)
+                motif = `<path d="M 8,8 Q 20,12 15,25" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" />`;
+                motif += `<circle cx="25" cy="25" r="5" fill="none" stroke="${color}" stroke-width="1" />`;
+            }
 
             let v1x = 50, v1y = 0;
             let v2x = 0, v2y = 50;
@@ -741,13 +897,14 @@
                     break;
                 case 'p4g':
                     cellContent = `
-                        <g id="p4">
+                        <g id="p4g_rot">
                             <use href="#m" />
-                            <use href="#m" transform="rotate(90, 25, 25)" />
-                            <use href="#m" transform="rotate(180, 25, 25)" />
-                            <use href="#m" transform="rotate(270, 25, 25)" />
+                            <use href="#m" transform="rotate(90, 0, 0)" />
+                            <use href="#m" transform="rotate(180, 0, 0)" />
+                            <use href="#m" transform="rotate(270, 0, 0)" />
                         </g>
-                        <use href="#p4" transform="translate(50, 25) scale(-1, 1)" />
+                        <use href="#p4g_rot" />
+                        <use href="#p4g_rot" transform="translate(25, 25) scale(-1, 1)" />
                     `;
                     break;
                 case 'p3':
@@ -812,9 +969,11 @@
             
             // Generate a grid of unit cells
             let minX = -4, maxX = 6, minY = -4, maxY = 6;
+            let scale = 1.0;
             if (state.game === 1) {
-                // Restrict tiling for Game 1 to isolate the operation
-                minX = -1; maxX = 2; minY = -1; maxY = 2;
+                // Skeletal view: 2x2 grid of unit cells
+                minX = 0; maxX = 1; minY = 0; maxY = 1;
+                scale = 1.5; // Scale up for visibility in skeletal mode
             }
 
             for(let x=minX; x<=maxX; x++) {
@@ -826,22 +985,23 @@
             }
 
             // Wrap the entire grid in a group to center it within the 200x200 viewBox
-            // Calculate approximate center offset based on grid size and vectors
             const numCols = maxX - minX + 1;
             const numRows = maxY - minY + 1;
-            const gridWidth = numCols * v1x + numRows * v2x;
-            const gridHeight = numCols * v1y + numRows * v2y;
-            const offsetX = (200 - gridWidth) / 2 - (minX * v1x + minY * v2x);
-            const offsetY = (200 - gridHeight) / 2 - (minX * v1y + minY * v2y);
+            const gridWidth = (numCols * v1x + numRows * v2x) * scale;
+            const gridHeight = (numCols * v1y + numRows * v2y) * scale;
+            const offsetX = (200 - gridWidth) / 2 - (minX * v1x + minY * v2x) * scale;
+            const offsetY = (200 - gridHeight) / 2 - (minX * v1y + minY * v2y) * scale;
 
-            return `<svg viewBox="0 0 200 200" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="background:#f8f9fa; overflow: hidden;">${defs}<g transform="translate(${offsetX}, ${offsetY})">${content}</g></svg>`;
+            return `<svg viewBox="0 0 200 200" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="background:#f8f9fa; overflow: hidden;">${defs}<g transform="translate(${offsetX}, ${offsetY}) scale(${scale})">${content}</g></svg>`;
         }
 
-        function generatePlay() {
+        async function generatePlay() {
             let qType = '';
-            if(state.game <= 3) qType = 'visual';
-            else if(state.game === 4) qType = 'bridge';
+            if(state.game <= 2) qType = 'visual';
+            else if(state.game === 3) qType = 'bridge';
             else qType = 'theory';
+
+            const style = (state.game === 1) ? 'simple' : 'complex';
 
             const allGroups = Object.keys(GROUPS);
             const targetGroup = pick(allGroups);
@@ -859,14 +1019,9 @@
                 // Only use groups we have perfect SVG generators for
                 const visualGroups = ['p1', 'p2', 'pm', 'pg', 'pmm', 'p4', 'p4m', 'p3', 'p6', 'p6m'];
                 let vGroup = pick(visualGroups);
-                svg = generateProceduralSVG(vGroup);
                 
-                // AI Double-Check Validation
-                if (!validateSymmetry(vGroup, svg)) {
-                    // Fallback to p1 if hallucinated to guarantee correctness
-                    vGroup = 'p1';
-                    svg = generateProceduralSVG('p1');
-                }
+                // Use the self-feeding database
+                svg = await fetchOrGenerateSVG(vGroup, style);
                 
                 const prompts = [
                     "Scout the floor. Which symmetry group is running this play?",
@@ -889,13 +1044,9 @@
                 hasVisual = true;
                 const visualGroups = ['p2', 'pmm', 'p4', 'p6'];
                 let vGroup = pick(visualGroups);
-                svg = generateProceduralSVG(vGroup);
                 
-                // AI Double-Check Validation
-                if (!validateSymmetry(vGroup, svg)) {
-                    vGroup = 'p2'; // Safe fallback for bridge
-                    svg = generateProceduralSVG('p2');
-                }
+                // Use the self-feeding database
+                svg = await fetchOrGenerateSVG(vGroup, style);
                 
                 questionText = `Look at this ${vGroup} pattern. What is its maximum rotation order?`;
                 options = shuffle(["1-fold (360°)", "2-fold (180°)", "3-fold (120°)", "4-fold (90°)", "6-fold (60°)"]);
@@ -951,7 +1102,7 @@
         /* --- GAME LOOP --- */
 
         function updateUI() {
-            document.getElementById('series-info-text').innerText = `GAME ${state.game} OF 7 | THE SYMMETRY DYNASTY`;
+            document.getElementById('series-info-text').innerText = `GAME ${state.game} - Q${state.quarter} | THE SYMMETRY DYNASTY`;
             document.getElementById('quarter-display').innerText = `Q${state.quarter} | PLAY ${state.play}/${state.playsPerQuarter}`;
             document.getElementById('score-knicks').innerText = state.knicksScore;
             document.getElementById('score-lakers').innerText = state.lakersScore;
@@ -1055,6 +1206,7 @@
 
         async function svgToBase64(svgString) {
             return new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error("SVG to Base64 timeout")), 10000);
                 const canvas = document.createElement('canvas');
                 canvas.width = 400;
                 canvas.height = 400;
@@ -1070,6 +1222,7 @@
                 const url = URL.createObjectURL(blob);
                 
                 img.onload = () => {
+                    clearTimeout(timeout);
                     ctx.fillStyle = '#ffffff';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0, 400, 400);
@@ -1078,6 +1231,7 @@
                     resolve(dataUrl.split(',')[1]);
                 };
                 img.onerror = (e) => {
+                    clearTimeout(timeout);
                     console.error("SVG to Image conversion failed", e);
                     reject(e);
                 };
@@ -1092,28 +1246,38 @@
                 return true;
             }
 
+            const GEMINI_TIMEOUT = 10000; // Increased to 10s for better reliability
+
             try {
+                // Perform conversion outside the race to give Gemini the full timeout window
                 const base64Data = await svgToBase64(svgString);
                 const ai = new GoogleGenAI({ apiKey: apiKey });
                 
                 const prompt = `You are an expert crystallographer. Analyze this repeating pattern. Does this pattern strictly belong to the Hermann-Mauguin wallpaper group ${group}? Respond with ONLY 'YES' or 'NO'.`;
                 
-                const response = await ai.models.generateContent({
-                    model: "gemini-3-flash-preview",
-                    contents: {
-                        parts: [
-                            { text: prompt },
-                            { inlineData: { mimeType: "image/jpeg", data: base64Data } }
-                        ]
-                    }
-                });
+                const response = await Promise.race([
+                    ai.models.generateContent({
+                        model: "gemini-3-flash-preview",
+                        contents: {
+                            parts: [
+                                { text: prompt },
+                                { inlineData: { mimeType: "image/jpeg", data: base64Data } }
+                            ]
+                        }
+                    }),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error("Gemini timeout")), GEMINI_TIMEOUT))
+                ]);
                 
                 const text = response.text.trim().toUpperCase();
                 console.log(`Gemini validation for ${group}: ${text}`);
                 return text.includes('YES');
             } catch (e) {
-                console.error("Gemini API Error:", e);
-                return false; // MUST NOT FALLBACK TO TRUE, keep trying until YES
+                if (e.message === "Gemini timeout") {
+                    console.warn(`Gemini validation timed out for ${group}.`);
+                } else {
+                    console.error("Gemini API Error:", e);
+                }
+                throw e; // Re-throw to be caught by fetchOrGenerateSVG
             }
         }
 
@@ -1131,23 +1295,7 @@
             }
 
             state.preloadedPlayPromise = (async () => {
-                let isValidated = false;
-                let playData = null;
-
-                while (!isValidated) {
-                    playData = generatePlay();
-                    
-                    if (playData.hasVisual) {
-                        const isGeminiApproved = await validateWithGemini(playData.svg, playData.correct);
-                        if (isGeminiApproved) {
-                            isValidated = true;
-                        } else {
-                            console.warn(`Hallucination rejected by Gemini for group ${playData.correct}. Regenerating...`);
-                        }
-                    } else {
-                        isValidated = true;
-                    }
-                }
+                const playData = await generatePlay();
                 state.preloadedPlayData = playData;
                 return playData;
             })();
@@ -1177,26 +1325,8 @@
                 state.preloadedPlayPromise = null;
                 state.preloadedPlayData = null;
             } else {
-                let isValidated = false;
-                let attempts = 0;
-
                 document.getElementById('loading-overlay').style.display = 'flex';
-
-                while (!isValidated && attempts < 3) {
-                    attempts++;
-                    playData = generatePlay();
-                    
-                    if (playData.hasVisual) {
-                        const isGeminiApproved = await validateWithGemini(playData.svg, playData.correct);
-                        if (isGeminiApproved) {
-                            isValidated = true;
-                        } else {
-                            console.warn(`Hallucination rejected by Gemini for group ${playData.correct}. Regenerating...`);
-                        }
-                    } else {
-                        isValidated = true;
-                    }
-                }
+                playData = await generatePlay();
             }
 
             document.getElementById('loading-overlay').style.display = 'none';
@@ -1218,8 +1348,7 @@
             d.options.forEach(opt => {
                 const btn = document.createElement('button');
                 btn.className = 'btn';
-                // Visual Answer Key (Debug Mode)
-                btn.innerText = opt === d.correct ? opt + " *" : opt;
+                btn.innerText = opt + (opt === d.correct ? " *" : "");
                 btn.onclick = () => handleAnswer(opt);
                 opts.appendChild(btn);
             });
@@ -1530,6 +1659,7 @@
             if (key) {
                 sessionStorage.setItem('GEMINI_API_KEY', key);
                 document.getElementById('api-key-overlay').style.display = 'none';
+                state.gameStarted = true;
                 loadPlay();
             } else {
                 alert("Please enter a valid API key.");
@@ -1545,12 +1675,7 @@
 
         // Boot
         window.onload = () => {
-            const storedKey = sessionStorage.getItem('GEMINI_API_KEY');
-            if (storedKey) {
-                loadPlay();
-            } else {
-                document.getElementById('api-key-overlay').style.display = 'flex';
-            }
+            // Auth listener handles the initial view
         };
 
     </script>
