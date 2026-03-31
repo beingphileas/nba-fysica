@@ -2,627 +2,1557 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Symmetry Playoffs: Knicks vs. Lakers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Symmetry Dynasty: Knicks vs. Lakers</title>
     <style>
         :root {
-            --knicks-orange: #F58426;
             --knicks-blue: #006BB6;
+            --knicks-orange: #F58426;
             --lakers-purple: #552583;
             --lakers-gold: #FDB927;
-            --bg-dark: #121212;
-            --text-white: #FFFFFF;
+            --bg-color: #111111;
+            --text-main: #ffffff;
         }
 
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+
         body {
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-white);
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at center, #222 0%, #000 100%);
+            color: var(--text-main);
+            height: 100dvh;
+            width: 100vw;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            height: 100vh;
             overflow: hidden;
         }
 
-        header {
-            background-color: var(--knicks-blue);
-            width: 100%;
-            padding: 10px 0;
-            text-align: center;
-            border-bottom: 3px solid var(--knicks-orange);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        /* Top: Scoreboard & Shot Clock (25%) */
+        #top-section {
+            height: 25%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+            padding: 5px 10px;
         }
 
-        h1 {
-            margin: 0;
-            font-size: 1.5rem;
-            text-transform: uppercase;
+        .series-info {
+            font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+            font-weight: bold;
             letter-spacing: 1px;
-            font-weight: 900;
-            color: var(--text-white);
-            text-shadow: 1px 1px 0 var(--knicks-orange);
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .star-icon {
+            color: gold;
+            font-size: 1.2rem;
+            display: none;
+        }
+        
+        body.elite-theme .star-icon {
+            display: inline-block;
         }
 
         .scoreboard {
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             align-items: center;
-            width: 95%;
+            width: 100%;
             max-width: 600px;
-            margin: 10px 0;
-            background: #1e1e1e;
-            border: 2px solid #333;
-            border-radius: 8px;
-            padding: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.8);
+            padding: 0 15px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .team { display: flex; flex-direction: column; align-items: center; width: 30%; padding: 5px 0; }
+        .team-name { font-size: clamp(0.8rem, 3vw, 1.1rem); font-weight: 900; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 1px; }
+        
+        .knicks { border-bottom: 4px solid var(--knicks-orange); }
+        .knicks .team-name { color: var(--knicks-blue); text-shadow: 0 0 8px rgba(0, 107, 182, 0.8), 1px 1px 0 #fff; }
+        .knicks .score { color: var(--knicks-orange); text-shadow: 0 0 10px rgba(245, 132, 38, 0.5); }
+        
+        .lakers { border-bottom: 4px solid var(--lakers-purple); }
+        .lakers .team-name { color: var(--lakers-gold); text-shadow: 0 0 8px rgba(253, 185, 39, 0.8), 1px 1px 0 #000; }
+        .lakers .score { color: var(--lakers-purple); text-shadow: 0 0 10px rgba(85, 37, 131, 0.5), 1px 1px 0 #fff; }
+        
+        .score { font-size: clamp(1.8rem, 6vw, 2.5rem); font-weight: bold; font-family: 'Impact', sans-serif; line-height: 1; }
+
+        .game-clock-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 30%;
+        }
+        .quarter-text { font-size: clamp(0.7rem, 2.5vw, 1rem); font-weight: bold; color: #fff; background: #333; padding: 2px 8px; border-radius: 4px; text-align: center; }
+        
+        .shot-clock {
+            font-size: clamp(1.5rem, 5vw, 2.2rem);
+            font-family: 'Impact', sans-serif;
+            color: #ff3333;
+            margin-top: 2px;
+            text-shadow: 0 0 10px #ff0000;
+            background: #000;
+            padding: 0 10px;
+            border-radius: 5px;
+            border: 1px solid #333;
+        }
+        .shot-clock.warning { color: #ff0000; animation: pulse 1s infinite; border-color: #ff0000; }
+        @keyframes pulse { 0% { opacity: 1; box-shadow: 0 0 15px #ff0000; } 50% { opacity: 0.5; box-shadow: none; } 100% { opacity: 1; box-shadow: 0 0 15px #ff0000; } }
+
+        /* Middle: Game Area (75%) */
+        #middle-section {
+            height: 75%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
             position: relative;
         }
 
-        .shot-clock-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: #000;
-            border: 1px solid #444;
-            padding: 2px 10px;
-            border-radius: 4px;
-        }
-
-        .shot-clock-label {
-            font-size: 0.6rem;
-            color: #666;
-            text-transform: uppercase;
-            margin-bottom: 0px;
-        }
-
-        .shot-clock-value {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #ff0000;
-            line-height: 1;
-        }
-
-        .shot-clock-value.warning {
-            animation: blink 0.5s infinite;
-        }
-
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
-        }
-
-        .team {
-            text-align: center;
-            flex: 1;
-        }
-
-        .team-name {
-            font-size: 0.9rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 2px;
-        }
-
-        .knicks .team-name { color: var(--knicks-orange); }
-        .lakers .team-name { color: var(--lakers-gold); }
-
-        .score {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 2.5rem;
-            font-weight: bold;
-            background: #000;
-            color: #ff0000;
-            padding: 5px 15px;
-            border-radius: 4px;
-            border: 1px solid #444;
-            display: inline-block;
-            min-width: 60px;
-            line-height: 1;
-        }
-
-        .vs {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #666;
-            padding: 0 15px;
-        }
-
-        .game-container {
-            width: 95%;
+        .play-container {
+            width: 100%;
             max-width: 600px;
-            background: #252525;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            border: 1px solid #444;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            overflow-y: auto;
-        }
-
-        .level-indicator {
-            text-align: center;
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: var(--knicks-orange);
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            border-bottom: 1px solid #444;
-            padding-bottom: 5px;
-        }
-
-        .question-box {
-            min-height: 180px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .pattern-container {
-            width: 100%;
-            height: 120px;
-            background: #eee;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            border: 1px solid #444;
-        }
-
-        .pattern-container svg {
-            width: 100%;
             height: 100%;
-        }
-
-        .question-text {
-            font-size: 1rem;
-            line-height: 1.4;
-            margin-bottom: 10px;
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .option-btn {
-            background-color: #333;
-            border: 2px solid #552583;
-            color: white;
-            padding: 10px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-        }
-
-        .option-btn:hover {
-            background-color: var(--knicks-blue);
-            border-color: var(--knicks-orange);
-            transform: translateY(-2px);
-        }
-
-        .option-btn:active {
-            transform: translateY(0);
-        }
-
-        .feedback {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
             text-align: center;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 10px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .question {
+            font-size: clamp(1rem, 4vw, 1.4rem);
+            font-weight: 600;
+            line-height: 1.3;
+            padding: 0 5px;
+            max-height: 25%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .visual-area {
+            width: 100%;
+            height: 40%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 5px 0;
+        }
+        
+        .visual-area svg { 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-content: center;
+            gap: 8px;
+            width: 100%;
+            height: 35%;
+            overflow: hidden;
+        }
+
+        .btn {
+            background: linear-gradient(to bottom, var(--knicks-blue), #004b80);
+            color: #fff;
+            border: 2px solid var(--knicks-orange);
+            padding: 8px 12px;
+            font-size: clamp(0.85rem, 3vw, 1.1rem);
             font-weight: bold;
-            font-size: 0.9rem;
-            display: none;
-        }
-
-        .feedback.swish {
-            background-color: rgba(0, 107, 182, 0.2);
-            border: 2px solid var(--knicks-blue);
-            color: var(--knicks-orange);
-        }
-
-        .feedback.brick {
-            background-color: rgba(85, 37, 131, 0.2);
-            border: 2px solid var(--lakers-purple);
-            color: var(--lakers-gold);
-        }
-
-        .next-btn {
-            display: none;
-            margin: 10px auto 0;
-            background-color: var(--knicks-orange);
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 5px;
+            border-radius: 10px;
             cursor: pointer;
+            flex: 1 1 calc(50% - 8px);
+            min-width: 120px;
+            max-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             text-transform: uppercase;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.1s, filter 0.1s;
         }
+        .btn:active { transform: translateY(2px); filter: brightness(1.2); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-        .next-btn:hover {
-            background-color: #e0731b;
-        }
-
-        .game-over {
-            text-align: center;
+        /* Bottom: Commentary / Feedback (Removed from layout, now a popup) */
+        #bottom-section {
             display: none;
         }
 
-        .game-over h2 {
-            font-size: 2.5rem;
+        /* Overlays & Popups */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(5px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .popup-card {
+            background: linear-gradient(135deg, #2a2a2a, #111);
+            border: 2px solid #444;
+            border-radius: 20px;
+            padding: 20px 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90dvh;
+            overflow-y: auto;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .popup-card.knicks-theme { border-color: var(--knicks-orange); box-shadow: 0 10px 30px rgba(245, 132, 38, 0.3); }
+        .popup-card.lakers-theme { border-color: var(--lakers-purple); box-shadow: 0 10px 30px rgba(85, 37, 131, 0.3); }
+
+        .overlay-title { font-size: clamp(1.8rem, 6vw, 2.5rem); font-family: 'Impact', sans-serif; margin-bottom: 10px; text-transform: uppercase; }
+        .overlay-sub { font-size: clamp(0.9rem, 3.5vw, 1.2rem); color: #ddd; margin-bottom: 15px; line-height: 1.3; }
+        
+        .text-knicks { color: var(--knicks-orange); text-shadow: 0 0 5px var(--knicks-blue); }
+        .text-lakers { color: var(--lakers-gold); text-shadow: 0 0 5px var(--lakers-purple); }
+        .text-neutral { color: #fff; }
+        
+        .overlay-btn {
+            background: #fff; color: #000; border: none; padding: 10px 20px;
+            font-size: clamp(0.9rem, 3.5vw, 1.2rem); font-weight: bold; border-radius: 30px; cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+        .overlay-btn:active { transform: translateY(2px); }
+        
+        .overlay-btn.knicks-btn { background: var(--knicks-orange); color: #fff; }
+        .overlay-btn.lakers-btn { background: var(--lakers-gold); color: #000; }
+
+        body.elite-theme {
+            background-image: radial-gradient(circle at center, #3a2a00 0%, #000 100%);
+        }
+        body.elite-theme #top-section {
+            border-bottom: 2px solid gold;
+        }
+
+        #playbook-visual svg {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .bouncing-ball {
+            font-size: 4rem;
+            animation: bounce 1s infinite;
             margin-bottom: 20px;
-            color: var(--knicks-orange);
+        }
+        .pulsing-text {
+            animation: pulse 1.5s infinite;
         }
 
-        .restart-btn {
-            background-color: var(--knicks-blue);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            font-weight: bold;
+        /* Chalkboard Animation */
+        .chalkboard {
+            width: 250px;
+            height: 180px;
+            background-color: #1a472a;
+            border: 8px solid #8b5a2b;
             border-radius: 5px;
-            cursor: pointer;
-            text-transform: uppercase;
-            margin-top: 20px;
+            position: relative;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5), 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .court-lines {
+            position: absolute;
+            top: 10%; left: -20%; right: 50%; bottom: 10%;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+        }
+        .court-lines::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0; right: -50%;
+            border-left: 2px solid rgba(255,255,255,0.3);
+        }
+        .x-mark, .o-mark {
+            position: absolute;
+            color: white;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .x1 { top: 20%; left: 20%; animation: moveX1 2s infinite alternate ease-in-out; }
+        .o1 { top: 20%; left: 70%; animation: moveO1 2.5s infinite alternate ease-in-out; }
+        .x2 { top: 60%; left: 30%; animation: moveX2 3s infinite alternate ease-in-out; }
+        .o2 { top: 60%; left: 60%; animation: moveO2 2.2s infinite alternate ease-in-out; }
+
+        @keyframes moveX1 { 0% { transform: translate(0,0); } 100% { transform: translate(30px, 20px); } }
+        @keyframes moveO1 { 0% { transform: translate(0,0); } 100% { transform: translate(-20px, 30px); } }
+        @keyframes moveX2 { 0% { transform: translate(0,0); } 100% { transform: translate(40px, -10px); } }
+        @keyframes moveO2 { 0% { transform: translate(0,0); } 100% { transform: translate(-30px, -20px); } }
+
+        .play-arrow {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.7;
+        }
+        .play-arrow path {
+            stroke-dasharray: 10, 5;
+            animation: dash 1s linear infinite;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: -15; }
         }
 
-        @media (max-width: 600px) {
-            h1 { font-size: 1.5rem; }
-            .score { font-size: 2.5rem; min-width: 70px; }
-            .question-text { font-size: 1.1rem; }
-            .option-btn { font-size: 0.9rem; padding: 10px; }
-        }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>The Symmetry Playoffs</h1>
-    </header>
-
-    <div class="scoreboard">
-        <div class="team knicks">
-            <div class="team-name">NY Knicks</div>
-            <div id="knicks-score" class="score">00</div>
+    <div id="top-section">
+        <div class="series-info" id="series-info">
+            <span class="star-icon">★</span>
+            <span id="series-info-text">GAME 1 OF 7 | THE SYMMETRY DYNASTY</span>
+            <span class="star-icon">★</span>
         </div>
-        
-        <div class="shot-clock-container">
-            <div class="shot-clock-label">Shot Clock</div>
-            <div id="shot-clock" class="shot-clock-value">24</div>
-        </div>
-
-        <div class="team lakers">
-            <div class="team-name">LA Lakers</div>
-            <div id="lakers-score" class="score">00</div>
-        </div>
-    </div>
-
-    <div class="game-container" id="game-container">
-        <div id="level-indicator" class="level-indicator">Level 1: Rookie Season</div>
-        
-        <div class="question-box">
-            <div id="pattern-container" class="pattern-container" style="display: none;"></div>
-            <div id="question-text" class="question-text">Loading question...</div>
-        </div>
-
-        <div id="options-grid" class="options-grid">
-            <!-- Options will be injected here -->
-        </div>
-
-        <div id="feedback" class="feedback"></div>
-        
-        <button id="next-btn" class="next-btn">Next Play</button>
-
-        <div id="game-over" class="game-over">
-            <h2 id="final-result">Game Over!</h2>
-            <p id="final-stats"></p>
-            <button onclick="location.reload()" class="restart-btn">New Season</button>
+        <div class="scoreboard">
+            <div class="team knicks">
+                <div class="team-name">Knicks</div>
+                <div class="score" id="score-knicks">0</div>
+            </div>
+            <div class="game-clock-container">
+                <div class="quarter-text" id="quarter-display">Q1 | PLAY 1/4</div>
+                <div class="shot-clock" id="shot-clock">24</div>
+                <button id="btn-timeout" onclick="toggleTimeout()" style="margin-top: 5px; background: #333; color: white; border: 1px solid #666; border-radius: 5px; padding: 4px 8px; cursor: pointer; font-size: 0.8rem;">⏸️ Time-out</button>
+            </div>
+            <div class="team lakers">
+                <div class="team-name">Lakers</div>
+                <div class="score" id="score-lakers">0</div>
+            </div>
         </div>
     </div>
 
-    <script>
-        const GROUND_TRUTH = [
-            { id: 'p1', system: 'Oblique', description: 'No rotation, no mirrors, no glides. (Only translation).', rotations: 'No', mirrors: 'No', glides: 'No' },
-            { id: 'p2', system: 'Oblique', description: '2-fold (180°) rotation ONLY. No mirrors, no glides.', rotations: '2-fold', mirrors: 'No', glides: 'No' },
-            { id: 'pm', system: 'Rectangular', description: 'No rotation. Parallel mirror lines ONLY.', rotations: 'No', mirrors: 'Parallel mirror lines', glides: 'No' },
-            { id: 'pg', system: 'Rectangular', description: 'No rotation. Parallel glide reflection lines ONLY.', rotations: 'No', mirrors: 'No', glides: 'Parallel glide reflection lines' },
-            { id: 'cm', system: 'Rectangular', description: 'No rotation. Parallel mirror lines, parallel glide lines (centered lattice).', rotations: 'No', mirrors: 'Parallel mirror lines', glides: 'Parallel glide lines' },
-            { id: 'pmm', system: 'Rectangular', description: '2-fold rotation. Two perpendicular mirror lines.', rotations: '2-fold', mirrors: 'Two perpendicular mirror lines', glides: 'No' },
-            { id: 'pmg', system: 'Rectangular', description: '2-fold rotation. Mirror line and perpendicular glide line.', rotations: '2-fold', mirrors: 'Mirror line', glides: 'Perpendicular glide line' },
-            { id: 'pgg', system: 'Rectangular', description: '2-fold rotation. Two perpendicular glide lines. No mirror lines.', rotations: '2-fold', mirrors: 'No', glides: 'Two perpendicular glide lines' },
-            { id: 'cmm', system: 'Rectangular', description: '2-fold rotation. Two perpendicular mirror lines (centered lattice).', rotations: '2-fold', mirrors: 'Two perpendicular mirror lines', glides: 'No' },
-            { id: 'p4', system: 'Square', description: '4-fold (90°) rotation ONLY. No mirrors, no glides.', rotations: '4-fold', mirrors: 'No', glides: 'No' },
-            { id: 'p4m', system: 'Square', description: '4-fold rotation. Mirrors intersecting at 45°.', rotations: '4-fold', mirrors: 'Mirrors intersecting at 45°', glides: 'Yes' },
-            { id: 'p4g', system: 'Square', description: '4-fold rotation. Mirrors intersecting at 90°, plus glide lines.', rotations: '4-fold', mirrors: 'Mirrors intersecting at 90°', glides: 'Glide lines' },
-            { id: 'p3', system: 'Hexagonal', description: '3-fold (120°) rotation ONLY. No mirrors, no glides.', rotations: '3-fold', mirrors: 'No', glides: 'No' },
-            { id: 'p3m1', system: 'Hexagonal', description: '3-fold rotation. Mirrors present. All rotation centers lie ON mirror lines.', rotations: '3-fold', mirrors: 'Mirrors present (on centers)', glides: 'Yes' },
-            { id: 'p31m', system: 'Hexagonal', description: '3-fold rotation. Mirrors present. Some rotation centers do NOT lie on mirror lines.', rotations: '3-fold', mirrors: 'Mirrors present (some not on centers)', glides: 'Yes' },
-            { id: 'p6', system: 'Hexagonal', description: '6-fold (60°) rotation ONLY. No mirrors, no glides.', rotations: '6-fold', mirrors: 'No', glides: 'No' },
-            { id: 'p6m', system: 'Hexagonal', description: '6-fold rotation. Mirrors intersecting at 30°.', rotations: '6-fold', mirrors: 'Mirrors intersecting at 30°', glides: 'Yes' }
-        ];
+    <div id="middle-section">
+        <div class="play-container">
+            <div class="question" id="question-text">Loading play...</div>
+            <div class="visual-area" id="visual-area" style="display: none;">
+                <!-- SVG injected here -->
+            </div>
+            <div class="options" id="options-area">
+                <!-- Buttons injected here -->
+            </div>
+        </div>
+    </div>
 
-        let knicksScore = 0;
-        let lakersScore = 0;
-        let currentQuestionIndex = 0;
-        let questions = [];
-        let timerInterval;
-        let timeLeft = 24;
+    <!-- Commentary Popup Overlay -->
+    <div class="overlay" id="commentary-overlay">
+        <div class="popup-card" id="commentary-card">
+            <div class="overlay-title" id="commentary-title">TIP-OFF</div>
+            <div class="overlay-sub" id="commentary-text">Welcome to the Symmetry Playoffs. Knicks ball.</div>
+            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 10px; flex-wrap: wrap;">
+                <button class="overlay-btn" id="next-btn" onclick="advanceGame()">Next Play</button>
+                <button class="overlay-btn" id="btn-explain" style="background-color: #555; color: white; display: none;" onclick="toggleExplanation()">📖 Tactische Analyse (Playbook)</button>
+            </div>
+        </div>
+    </div>
 
-        function initGame() {
-            // Level 1 questions: Pure Recognition (Pattern -> Code)
-            const level1 = GROUND_TRUTH.map(item => ({
-                level: 1,
-                text: `RECOGNIZE THE WALLPAPER GROUP FROM THE PATTERN BELOW:`,
-                correct: item.id,
-                options: shuffle([...new Set(GROUND_TRUTH.map(g => g.id))]).slice(0, 4)
-            }));
-            // Ensure correct answer is in options
-            level1.forEach(q => { if(!q.options.includes(q.correct)) q.options[0] = q.correct; q.options = shuffle(q.options); });
+    <!-- Explanation Modal (Playbook) -->
+    <div class="overlay" id="explanation-modal" style="z-index: 150;">
+        <div class="popup-card knicks-theme" style="gap: 15px; text-align: center;">
+            <div class="overlay-title text-knicks" style="font-size: clamp(1.4rem, 5vw, 1.8rem); margin-bottom: 0;">COACH THIBODEAU'S TACTISCH OVERZICHT</div>
+            <div id="playbook-visual" style="width: 100%; min-height: 180px; display: flex; justify-content: center; align-items: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 10px; overflow: hidden;"></div>
+            <div id="playbook-text" style="width: 100%; max-height: 35vh; overflow-y: auto; padding: 0 10px; color: #ddd; font-size: clamp(0.9rem, 3.5vw, 1.1rem); line-height: 1.5; display: flex; flex-direction: column; gap: 10px;"></div>
+            <button id="btn-close-playbook" class="overlay-btn knicks-btn" style="width: 100%; margin-top: 5px;" onclick="advanceGame()">CLOSE & NEXT PLAY 🏀</button>
+        </div>
+    </div>
 
-            // Level 2 questions: Targeted Operations
-            const level2 = [
-                { level: 2, text: "Does the pgg group contain any mirror lines?", correct: "No", options: ["Yes", "No"] },
-                { level: 2, text: "Does the p4 group contain any glide reflections?", correct: "No", options: ["Yes", "No"] },
-                { level: 2, text: "Does the p3m1 group have all rotation centers on mirror lines?", correct: "Yes", options: ["Yes", "No"] },
-                { level: 2, text: "Does the p31m group have some rotation centers not on mirror lines?", correct: "Yes", options: ["Yes", "No"] },
-                { level: 2, text: "Does the p6m group have mirrors intersecting at 30°?", correct: "Yes", options: ["Yes", "No"] },
-                { level: 2, text: "Does the p4m group have mirrors intersecting at 45°?", correct: "Yes", options: ["Yes", "No"] },
-                { level: 2, text: "Does the p4g group have mirrors intersecting at 90°?", correct: "Yes", options: ["Yes", "No"] },
-                { level: 2, text: "Does the cm group have a centered lattice?", correct: "Yes", options: ["Yes", "No"] },
-                { level: 2, text: "Does the pmg group have perpendicular mirror and glide lines?", correct: "Yes", options: ["Yes", "No"] },
-                { level: 2, text: "Does the p1 group contain any rotations?", correct: "No", options: ["Yes", "No"] }
-            ];
+    <div class="overlay" id="transition-overlay">
+        <div class="popup-card">
+            <div class="overlay-title" id="transition-title">QUARTER WON!</div>
+            <div class="overlay-sub" id="transition-subtext">Knicks take Q1.</div>
+            <button class="overlay-btn" id="transition-btn" onclick="startNextPhase()">Continue</button>
+        </div>
+    </div>
 
-            // Level 3 questions: Code -> System
-            const systems = ["Oblique", "Rectangular", "Square", "Hexagonal"];
-            const level3 = GROUND_TRUTH.map(item => ({
-                level: 3,
-                text: `To which crystal system does the ${item.id} group belong?`,
-                correct: item.system,
-                options: shuffle(systems)
-            }));
+    <!-- API Key Modal -->
+    <div class="overlay" id="api-key-overlay" style="display: none; z-index: 300;">
+        <div class="popup-card">
+            <div class="overlay-title">API SETUP</div>
+            <div class="overlay-sub" style="text-align: center; margin-bottom: 15px;">Enter your Gemini API Key for Vision Validation.</div>
+            <input type="password" id="api-key-input" placeholder="AIzaSy..." style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ccc; color: #000; font-size: 1.1rem; box-sizing: border-box;">
+            <button class="overlay-btn knicks-btn" onclick="saveApiKey()">Save & Start</button>
+        </div>
+    </div>
 
-            questions = [...shuffle(level1).slice(0, 5), ...shuffle(level2).slice(0, 5), ...shuffle(level3).slice(0, 5)];
-            showQuestion();
+    <!-- Loading Overlay -->
+    <div class="overlay" id="loading-overlay" style="display: none; z-index: 200;">
+        <div class="popup-card" style="display: flex; flex-direction: column; align-items: center;">
+            <div class="chalkboard">
+                <div class="court-lines"></div>
+                <div class="x-mark x1">X</div>
+                <div class="o-mark o1">O</div>
+                <div class="x-mark x2">X</div>
+                <div class="o-mark o2">O</div>
+                <svg class="play-arrow" viewBox="0 0 100 100">
+                    <path d="M 25,25 Q 50,50 70,30" fill="none" stroke="white" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <path d="M 35,65 Q 50,40 65,65" fill="none" stroke="white" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="white" />
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+            <div class="overlay-title pulsing-text" id="loading-text" style="color: var(--lakers-gold); font-size: 1.5rem; text-align: center; margin-bottom: 0;">COACH IS DRAWING UP THE NEXT PLAY...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { GoogleGenAI } from "@google/genai";
+
+        /* --- GROUND TRUTH DATA --- */
+        const GROUPS = {
+            'p1': { system: 'Oblique', rot: 1, mirrors: 0, glides: 0, desc: 'Translations only.', detailedDesc: 'Analyse: Dit is de meest basale structuur. Er is alleen sprake van translatie (verschuiving) langs de roostervectoren. Er zijn geen rotatiepunten, spiegelvlakken of glijspiegelingen aanwezig. In de materiaalfysica noemen we dit een primitief scheef (oblique) rooster.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the pure translation is evident. There is no full pattern repeat, just the isolated symmetry elements showing the shift.' },
+            'p2': { system: 'Oblique', rot: 2, mirrors: 0, glides: 0, desc: '180° rotations.', detailedDesc: 'Analyse: Dit patroon bevat 2-voudige rotatiecentra (180 graden). Als je het patroon rond een roosterpunt draait, ziet het er identiek uit. Er zijn echter geen spiegel- of glijspiegeloperaties. Dit is cruciaal voor materialen met een lagere kristalsymmetrie.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the 180° rotation is evident around the central point. We isolate the symmetry elements rather than showing a full pattern repeat.' },
+            'pm': { system: 'Rectangular', rot: 1, mirrors: 1, glides: 0, desc: 'Parallel mirrors.', detailedDesc: 'Analyse: Hier zien we zuivere spiegelas-symmetrie (mirror planes). De spiegelvlakken lopen parallel aan elkaar. Er vindt geen rotatie plaats. Dit type symmetrie bepaalt vaak de anisotrope geleiding in een materiaal.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the mirror reflection is evident across the central axis. The symmetry elements are isolated without a full pattern repeat.' },
+            'pg': { system: 'Rectangular', rot: 1, mirrors: 0, glides: 1, desc: 'Parallel glides.', detailedDesc: 'Analyse: Let op, dit is een glijspiegeling (glide reflection). De structuur wordt eerst gespiegeld en daarna over een halve roostervector verschoven. Dit is een subtiele maar essentiële operatie in de kristallografie die je niet mag verwarren met een gewone spiegel.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the glide reflection is evident. You can see the mirror and the shift isolated as symmetry elements.' },
+            'cm': { system: 'Rectangular', rot: 1, mirrors: 1, glides: 1, desc: 'Mirrors and glides parallel.', detailedDesc: 'Analyse: Dit is een gecentreerd rechthoekig (rhombisch) rooster. Het bevat parallelle spiegels en glijspiegelingen die elkaar afwisselen. De spiegelvlakken en glijlijnen lopen in dezelfde richting.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the parallel mirrors and glides are evident as isolated symmetry elements.' },
+            'pmm': { system: 'Rectangular', rot: 2, mirrors: 2, glides: 0, desc: 'Perpendicular mirrors, 2-fold rot.', detailedDesc: 'Analyse: Een rechthoekig systeem met twee sets spiegelassen die loodrecht op elkaar staan. Op de snijpunten van deze spiegels ontstaan automatisch 2-voudige rotatiepunten (180 graden). Een zeer stabiele en veelvoorkomende structuur.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the perpendicular mirrors and 2-fold rotation are evident. The symmetry elements are isolated from any distracting pattern repeat.' },
+            'pmg': { system: 'Rectangular', rot: 2, mirrors: 1, glides: 1, desc: 'Mirrors perpendicular to glides.', detailedDesc: 'Analyse: In deze structuur staan de spiegelassen loodrecht op de glijspiegelassen. Er zijn 2-voudige rotatiepunten aanwezig, maar deze liggen niet op de spiegelvlakken.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the mirrors and perpendicular glides are evident as isolated symmetry elements.' },
+            'pgg': { system: 'Rectangular', rot: 2, mirrors: 0, glides: 2, desc: 'Perpendicular glides, 2-fold rot.', detailedDesc: 'Analyse: Dit patroon bevat twee sets glijspiegelingen die loodrecht op elkaar staan. Er zijn 2-voudige rotatiepunten, maar er zijn geen zuivere spiegelvlakken aanwezig.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the perpendicular glides and 2-fold rotation are evident as isolated symmetry elements.' },
+            'cmm': { system: 'Rectangular', rot: 2, mirrors: 2, glides: 2, desc: 'Perpendicular mirrors & glides, centered.', detailedDesc: 'Analyse: Een complexer gecentreerd rechthoekig rooster met spiegels en glijspiegels in twee loodrechte richtingen. Er zijn 2-voudige rotatiepunten op de snijpunten van de spiegels.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the centered perpendicular mirrors and glides are evident as isolated symmetry elements.' },
+            'p4': { system: 'Square', rot: 4, mirrors: 0, glides: 0, desc: '90° rotations.', detailedDesc: 'Analyse: Een vierkant rooster met 4-voudige rotaties (90 graden). Er zijn geen spiegel- of glijspiegeloperaties aanwezig in deze groep. De rotatiepunten vormen een vierkant patroon.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the 90° rotation is evident around the center. We focus purely on these symmetry elements instead of a full pattern repeat.' },
+            'p4m': { system: 'Square', rot: 4, mirrors: 4, glides: 2, desc: '90° rot, mirrors at 45°.', detailedDesc: 'Analyse: Dit is een vierkant rooster met hoge symmetrie. Er is een 4-voudige rotatieas (90 graden) en de spiegelassen snijden elkaar onder een hoek van 45 graden. Merk op dat de rotatiecentra precies op de kruispunten van de spiegelassen liggen.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the 90° rotation and intersecting mirrors are evident. The symmetry elements are clearly isolated.' },
+            'p4g': { system: 'Square', rot: 4, mirrors: 2, glides: 2, desc: '90° rot, mirrors at 90°.', detailedDesc: 'Analyse: Een beruchte instinker! Er is 90 graden rotatie, maar de spiegels snijden elkaar onder 90 graden en er zijn glijspiegelingen aanwezig. De 4-voudige rotatiecentra liggen hier NIET op de spiegelassen, wat het onderscheidt van p4m.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the 90° rotation and 90° mirrors are evident as isolated symmetry elements.' },
+            'p3': { system: 'Hexagonal', rot: 3, mirrors: 0, glides: 0, desc: '120° rotations.', detailedDesc: 'Analyse: Dit hexagonale rooster bevat alleen 3-voudige rotaties (120 graden). Er zijn geen reflecties of glijspiegelingen. Het patroon herhaalt zich in een driehoekig of hexagonaal netwerk.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the 120° rotation is evident. The symmetry elements are isolated without a full pattern repeat.' },
+            'p3m1': { system: 'Hexagonal', rot: 3, mirrors: 3, glides: 3, desc: '120° rot, all centers ON mirrors.', detailedDesc: 'Analyse: Hexagonale symmetrie met 3-voudige rotatie (120 graden). In p3m1 liggen ALLE rotatiecentra op de spiegelassen. Dit beïnvloedt hoe elektronen zich door het kristalrooster bewegen.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the 120° rotation with centers on mirrors is evident as isolated symmetry elements.' },
+            'p31m': { system: 'Hexagonal', rot: 3, mirrors: 3, glides: 3, desc: '120° rot, some centers OFF mirrors.', detailedDesc: 'Analyse: Ook 120 graden rotatie, maar kijk goed naar de rotatiecentra: bij p31m liggen sommige centra juist tussen de spiegelassen in. Dit verschil in positie is essentieel voor de berekening van de Brillouin-zones in de sterrenkunde en fysica.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the 120° rotation with some centers off mirrors is evident as isolated symmetry elements.' },
+            'p6': { system: 'Hexagonal', rot: 6, mirrors: 0, glides: 0, desc: '60° rotations.', detailedDesc: 'Analyse: De hoogste vorm van rotatiesymmetrie zonder reflecties. Het bevat 6-voudige rotaties (60 graden). Dit hexagonale systeem heeft geen spiegels of glijspiegels.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the 60° rotation is evident around the center. The symmetry elements are isolated.' },
+            'p6m': { system: 'Hexagonal', rot: 6, mirrors: 6, glides: 6, desc: '60° rot, mirrors at 30°.', detailedDesc: 'Analyse: De koning van de hexagonale symmetrie. 6-voudige rotatie (60 graden) met spiegelassen die elkaar elke 30 graden snijden. Dit zie je vaak terug in de atomaire structuur van grafeen.', skeletalDesc: 'Analyse (Skeletal Diagram): Look at the skeletal diagram; the 60° rotation and intersecting mirrors are evident. We isolate these symmetry elements rather than showing a full pattern repeat.' }
+        };
+
+        /* --- GAME STATE --- */
+        let state = {
+            game: 1,
+            quarter: 1,
+            play: 1,
+            playsPerQuarter: 4,
+            knicksScore: 0,
+            lakersScore: 0,
+            quarterKnicks: 0,
+            quarterLakers: 0,
+            quartersWon: 0, // by Knicks
+            currentPlayData: null,
+            shotClock: 24,
+            timerInterval: null,
+            isAndOne: false,
+            isPaused: false,
+            pendingExplanation: null,
+            preloadedPlayPromise: null,
+            preloadedPlayData: null
+        };
+
+        const KNICKS_PLAYERS = ["Jalen Brunson", "Julius Randle", "OG Anunoby", "Josh Hart", "Donte DiVincenzo", "Mitchell Robinson"];
+        const LAKERS_PLAYERS = ["LeBron James", "Anthony Davis", "D'Angelo Russell", "Austin Reaves", "Rui Hachimura"];
+
+        const commentaryPool = {
+            knicks2pt: [
+                "Jalen Brunson with the crafty finish at the rim!",
+                "Josh Hart secures the offensive board and lays it in!",
+                "OG Anunoby cuts baseline and gets the easy two!",
+                "Mitchell Robinson with the monster putback dunk!",
+                "DiVincenzo drives, spins, and scores in the paint!"
+            ],
+            knicks3pt: [
+                "Brunson pulls up from deep... BANG!",
+                "DiVincenzo catches and shoots... pure water!",
+                "Anunoby from the corner... nothing but net!",
+                "Hart in transition... pulls up for three and hits it!",
+                "McBride off the bench with the huge triple!"
+            ],
+            lakersScore: [
+                "LeBron James bullies his way to the rim for two.",
+                "Anthony Davis with the emphatic block and transition slam!",
+                "D'Angelo Russell hits the pull-up jumper.",
+                "Austin Reaves draws the foul and finishes the play.",
+                "Rui Hachimura knocks down the open corner three."
+            ],
+            freeThrowMake: [
+                "Brunson steps to the line and calmly sinks it.",
+                "DiVincenzo at the stripe... it's good.",
+                "Hart takes a breath and hits the free throw.",
+                "Anunoby converts the technical freebie.",
+                "McBride with the perfect stroke at the line."
+            ],
+            freeThrowMiss: [
+                "Brunson's free throw rims out.",
+                "DiVincenzo misses the freebie.",
+                "Hart's shot is short off the front iron.",
+                "Anunoby misses the technical free throw.",
+                "McBride can't convert at the line."
+            ],
+            timeout: [
+                "Shot clock violation! Knicks turn it over.",
+                "24 seconds up! Lakers defense holds strong.",
+                "Buzzer sounds! Knicks couldn't get a shot off.",
+                "Forced shot clock violation by the Lakers.",
+                "Time expires on the possession."
+            ],
+            freeThrowTimeout: [
+                "10-second violation! Took too long at the line.",
+                "Free throw clock expires. Turnover.",
+                "Too much time at the stripe. No point.",
+                "Violation on the free throw attempt.",
+                "Whistle blows. 10 seconds up at the line."
+            ],
+            andOne: [
+                "And the foul! Brunson at the line.",
+                "Count the basket and the foul!",
+                "Tough finish through contact! One more at the line.",
+                "He absorbs the hit and scores! And-one opportunity.",
+                "Foul on the play! Chance for a three-point play."
+            ]
+        };
+
+        /* --- PROCEDURAL QUESTION ENGINE (100+ Variations) --- */
+        
+        // Helper: Random item from array
+        const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+        // Helper: Shuffle array
+        const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+
+        // AI Double-Check Validation
+        function validateSymmetry(groupCode, generatedSvgString) {
+            let isValid = true;
+            let errors = [];
+
+            const hasRotate = generatedSvgString.includes('rotate');
+            const hasScale = generatedSvgString.includes('scale');
+            const hasScaleMinus1 = generatedSvgString.includes('scale(-1') || generatedSvgString.includes('scale(1, -1)');
+
+            if (groupCode === 'p1') {
+                if (hasRotate || hasScale) {
+                    isValid = false;
+                    errors.push("p1 must not contain rotate or scale");
+                }
+            } else if (groupCode === 'p2') {
+                if (!generatedSvgString.includes('rotate(180') || hasScale) {
+                    isValid = false;
+                    errors.push("p2 must contain rotate(180) and no scale");
+                }
+            } else if (groupCode === 'pm') {
+                if (!hasScaleMinus1) {
+                    isValid = false;
+                    errors.push("pm must contain scale(-1, 1) or scale(1, -1)");
+                }
+                if (hasRotate) {
+                    isValid = false;
+                    errors.push("pm must not contain rotate");
+                }
+            } else if (groupCode === 'pg') {
+                if (!hasScaleMinus1) {
+                    isValid = false;
+                    errors.push("pg must contain scale");
+                }
+                if (hasRotate) {
+                    isValid = false;
+                    errors.push("pg must not contain rotate");
+                }
+            } else if (groupCode === 'pmm') {
+                if (!generatedSvgString.includes('scale(-1') || !generatedSvgString.includes('scale(1, -1)')) {
+                    isValid = false;
+                    errors.push("pmm must contain both scale(-1, 1) and scale(1, -1)");
+                }
+            } else if (groupCode === 'p4') {
+                if (!generatedSvgString.includes('rotate(90') || !generatedSvgString.includes('rotate(180') || !generatedSvgString.includes('rotate(270')) {
+                    isValid = false;
+                    errors.push("p4 must contain rotate(90), rotate(180), rotate(270)");
+                }
+                if (hasScale) {
+                    isValid = false;
+                    errors.push("p4 must not contain scale");
+                }
+            } else if (groupCode === 'p4m') {
+                if (!generatedSvgString.includes('rotate(90') || !hasScale) {
+                    isValid = false;
+                    errors.push("p4m must contain rotate(90) and scale");
+                }
+            } else if (groupCode === 'p4g') {
+                if (!generatedSvgString.includes('rotate(90') || !hasScale) {
+                    isValid = false;
+                    errors.push("p4g must contain rotate(90) and scale");
+                }
+            } else if (groupCode === 'p3') {
+                if (!generatedSvgString.includes('rotate(120') || !generatedSvgString.includes('rotate(240')) {
+                    isValid = false;
+                    errors.push("p3 must contain rotate(120) and rotate(240)");
+                }
+                if (hasScale) {
+                    isValid = false;
+                    errors.push("p3 must not contain scale");
+                }
+            } else if (groupCode === 'p6') {
+                if (!generatedSvgString.includes('rotate(60') || !generatedSvgString.includes('rotate(120') || !generatedSvgString.includes('rotate(180') || !generatedSvgString.includes('rotate(240') || !generatedSvgString.includes('rotate(300')) {
+                    isValid = false;
+                    errors.push("p6 must contain rotate(60, 120, 180, 240, 300)");
+                }
+                if (hasScale) {
+                    isValid = false;
+                    errors.push("p6 must not contain scale");
+                }
+            }
+
+            if (!isValid) {
+                console.error('Hallucination detected in ' + groupCode + ':', errors.join(', '));
+                return false;
+            }
+            return true;
         }
 
-        function shuffle(array) {
-            return array.sort(() => Math.random() - 0.5);
-        }
-
-        function startTimer() {
-            clearInterval(timerInterval);
-            timeLeft = 24;
-            updateTimerDisplay();
+        // Generates a mathematically accurate SVG string for a given group
+        // To save tokens while providing infinite visual variety, we use a procedural SVG builder
+        // that applies SVG transforms (<use>) to a randomized base motif.
+        function generateProceduralSVG(group) {
+            const colors = ['#FF3B30', '#007AFF', '#34C759', '#FF9500', '#AF52DE', '#FF2D55'];
+            const color = pick(colors);
             
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                updateTimerDisplay();
+            // "EscherSketch" digital pen stroke motif
+            let motif = `<path d="M 8,8 Q 20,12 15,25" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" />`;
+
+            let v1x = 50, v1y = 0;
+            let v2x = 0, v2y = 50;
+
+            if (group === 'p1' || group === 'p2') {
+                v2x = 15; v2y = 50; // Oblique
+            } else if (group === 'cm' || group === 'cmm') {
+                v2x = 25; v2y = 50; // Rhombic
+            } else if (['p3', 'p3m1', 'p31m', 'p6', 'p6m'].includes(group)) {
+                v2x = 25; v2y = 43.301; // Hexagonal
+            }
+
+            let cellContent = '';
+            switch(group) {
+                case 'p1':
+                    cellContent = `<use href="#m" />`;
+                    break;
+                case 'p2':
+                    cellContent = `
+                        <use href="#m" />
+                        <use href="#m" transform="rotate(180, 25, 25)" />
+                    `;
+                    break;
+                case 'pm':
+                    cellContent = `
+                        <use href="#m" />
+                        <use href="#m" transform="translate(50, 0) scale(-1, 1)" />
+                    `;
+                    break;
+                case 'pg':
+                    cellContent = `
+                        <use href="#m" />
+                        <use href="#m" transform="translate(50, 25) scale(-1, 1)" />
+                    `;
+                    break;
+                case 'cm':
+                    cellContent = `
+                        <use href="#m" />
+                        <use href="#m" transform="translate(50, 0) scale(-1, 1)" />
+                    `;
+                    break;
+                case 'pmm':
+                    cellContent = `
+                        <use href="#m" />
+                        <use href="#m" transform="translate(50, 0) scale(-1, 1)" />
+                        <use href="#m" transform="translate(0, 50) scale(1, -1)" />
+                        <use href="#m" transform="translate(50, 50) scale(-1, -1)" />
+                    `;
+                    break;
+                case 'pmg':
+                    cellContent = `
+                        <use href="#m" />
+                        <use href="#m" transform="translate(50, 0) scale(-1, 1)" />
+                        <use href="#m" transform="translate(25, 25) scale(1, -1)" />
+                        <use href="#m" transform="translate(25, 25) scale(-1, -1)" />
+                    `;
+                    break;
+                case 'pgg':
+                    cellContent = `
+                        <use href="#m" />
+                        <use href="#m" transform="translate(50, 25) scale(-1, 1)" />
+                        <use href="#m" transform="translate(25, 50) scale(1, -1)" />
+                        <use href="#m" transform="translate(25, 25) scale(-1, -1)" />
+                    `;
+                    break;
+                case 'cmm':
+                    cellContent = `
+                        <use href="#m" />
+                        <use href="#m" transform="translate(50, 0) scale(-1, 1)" />
+                        <use href="#m" transform="translate(0, 50) scale(1, -1)" />
+                        <use href="#m" transform="translate(50, 50) scale(-1, -1)" />
+                    `;
+                    break;
+                case 'p4':
+                    cellContent = `
+                        <use href="#m" />
+                        <use href="#m" transform="rotate(90, 25, 25)" />
+                        <use href="#m" transform="rotate(180, 25, 25)" />
+                        <use href="#m" transform="rotate(270, 25, 25)" />
+                    `;
+                    break;
+                case 'p4m':
+                    cellContent = `
+                        <g id="p4">
+                            <use href="#m" />
+                            <use href="#m" transform="rotate(90, 25, 25)" />
+                            <use href="#m" transform="rotate(180, 25, 25)" />
+                            <use href="#m" transform="rotate(270, 25, 25)" />
+                        </g>
+                        <use href="#p4" transform="translate(50, 0) scale(-1, 1)" />
+                    `;
+                    break;
+                case 'p4g':
+                    cellContent = `
+                        <g id="p4">
+                            <use href="#m" />
+                            <use href="#m" transform="rotate(90, 25, 25)" />
+                            <use href="#m" transform="rotate(180, 25, 25)" />
+                            <use href="#m" transform="rotate(270, 25, 25)" />
+                        </g>
+                        <use href="#p4" transform="translate(50, 25) scale(-1, 1)" />
+                    `;
+                    break;
+                case 'p3':
+                    cellContent = `
+                        <use href="#m" />
+                        <use href="#m" transform="rotate(120, 25, 14.434)" />
+                        <use href="#m" transform="rotate(240, 25, 14.434)" />
+                    `;
+                    break;
+                case 'p3m1':
+                    cellContent = `
+                        <g id="p3">
+                            <use href="#m" />
+                            <use href="#m" transform="rotate(120, 25, 14.434)" />
+                            <use href="#m" transform="rotate(240, 25, 14.434)" />
+                        </g>
+                        <use href="#p3" transform="translate(50, 0) scale(-1, 1)" />
+                    `;
+                    break;
+                case 'p31m':
+                    cellContent = `
+                        <g id="p3_2">
+                            <use href="#m" />
+                            <use href="#m" transform="rotate(120, 25, 14.434)" />
+                            <use href="#m" transform="rotate(240, 25, 14.434)" />
+                        </g>
+                        <use href="#p3_2" transform="scale(1, -1)" />
+                    `;
+                    break;
+                case 'p6':
+                    cellContent = `
+                        <use href="#m" />
+                        <use href="#m" transform="rotate(60, 0, 0)" />
+                        <use href="#m" transform="rotate(120, 0, 0)" />
+                        <use href="#m" transform="rotate(180, 0, 0)" />
+                        <use href="#m" transform="rotate(240, 0, 0)" />
+                        <use href="#m" transform="rotate(300, 0, 0)" />
+                    `;
+                    break;
+                case 'p6m':
+                    cellContent = `
+                        <g id="p6">
+                            <use href="#m" />
+                            <use href="#m" transform="rotate(60, 0, 0)" />
+                            <use href="#m" transform="rotate(120, 0, 0)" />
+                            <use href="#m" transform="rotate(180, 0, 0)" />
+                            <use href="#m" transform="rotate(240, 0, 0)" />
+                            <use href="#m" transform="rotate(300, 0, 0)" />
+                        </g>
+                        <use href="#p6" transform="scale(1, -1)" />
+                    `;
+                    break;
+            }
+
+            let defs = `
+            <defs>
+                <g id="m">${motif}</g>
+                <g id="cell">${cellContent}</g>
+            </defs>`;
+
+            let content = '';
+            
+            // Generate a grid of unit cells
+            let minX = -4, maxX = 6, minY = -4, maxY = 6;
+            if (state.game === 1) {
+                // Restrict tiling for Game 1 to isolate the operation
+                minX = -1; maxX = 2; minY = -1; maxY = 2;
+            }
+
+            for(let x=minX; x<=maxX; x++) {
+                for(let y=minY; y<=maxY; y++) {
+                    let tx = x * v1x + y * v2x;
+                    let ty = x * v1y + y * v2y;
+                    content += `<use href="#cell" transform="translate(${tx}, ${ty})" />`;
+                }
+            }
+
+            // Wrap the entire grid in a group to center it within the 200x200 viewBox
+            // Calculate approximate center offset based on grid size and vectors
+            const numCols = maxX - minX + 1;
+            const numRows = maxY - minY + 1;
+            const gridWidth = numCols * v1x + numRows * v2x;
+            const gridHeight = numCols * v1y + numRows * v2y;
+            const offsetX = (200 - gridWidth) / 2 - (minX * v1x + minY * v2x);
+            const offsetY = (200 - gridHeight) / 2 - (minX * v1y + minY * v2y);
+
+            return `<svg viewBox="0 0 200 200" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="background:#f8f9fa; overflow: hidden;">${defs}<g transform="translate(${offsetX}, ${offsetY})">${content}</g></svg>`;
+        }
+
+        function generatePlay() {
+            let qType = '';
+            if(state.game <= 3) qType = 'visual';
+            else if(state.game === 4) qType = 'bridge';
+            else qType = 'theory';
+
+            const allGroups = Object.keys(GROUPS);
+            const targetGroup = pick(allGroups);
+            const data = GROUPS[targetGroup];
+
+            let questionText = '';
+            let options = [];
+            let explanation = '';
+            let hasVisual = false;
+            let svg = '';
+
+            if (qType === 'visual') {
+                // Phase 1: Pure Visual
+                hasVisual = true;
+                // Only use groups we have perfect SVG generators for
+                const visualGroups = ['p1', 'p2', 'pm', 'pg', 'pmm', 'p4', 'p4m', 'p3', 'p6', 'p6m'];
+                let vGroup = pick(visualGroups);
+                svg = generateProceduralSVG(vGroup);
                 
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    handleViolation();
+                // AI Double-Check Validation
+                if (!validateSymmetry(vGroup, svg)) {
+                    // Fallback to p1 if hallucinated to guarantee correctness
+                    vGroup = 'p1';
+                    svg = generateProceduralSVG('p1');
+                }
+                
+                const prompts = [
+                    "Scout the floor. Which symmetry group is running this play?",
+                    "Read the defense. Identify the wallpaper group of this pattern.",
+                    "Visual check. What's the symmetry group here?"
+                ];
+                questionText = pick(prompts);
+                
+                let wrongs = shuffle(allGroups.filter(g => g !== vGroup)).slice(0, 3);
+                options = shuffle([vGroup, ...wrongs]);
+                
+                let correctGroup = vGroup;
+                explanation = `Ground Truth: This is ${vGroup}. It belongs to the ${GROUPS[vGroup].system} system. Key feature: ${GROUPS[vGroup].desc}`;
+                let explanationText = state.game === 1 && GROUPS[correctGroup].skeletalDesc ? GROUPS[correctGroup].skeletalDesc : (GROUPS[correctGroup].detailedDesc || `The correct answer is ${correctGroup}. It features ${GROUPS[correctGroup].desc}`);
+                
+                return { text: questionText, hasVisual, svg, options, correct: vGroup, explanation, explanationText, points: state.game <= 3 ? 2 : 3 };
+            } 
+            else if (qType === 'bridge') {
+                // Phase 2: Bridge (Visual + Theory)
+                hasVisual = true;
+                const visualGroups = ['p2', 'pmm', 'p4', 'p6'];
+                let vGroup = pick(visualGroups);
+                svg = generateProceduralSVG(vGroup);
+                
+                // AI Double-Check Validation
+                if (!validateSymmetry(vGroup, svg)) {
+                    vGroup = 'p2'; // Safe fallback for bridge
+                    svg = generateProceduralSVG('p2');
+                }
+                
+                questionText = `Look at this ${vGroup} pattern. What is its maximum rotation order?`;
+                options = shuffle(["1-fold (360°)", "2-fold (180°)", "3-fold (120°)", "4-fold (90°)", "6-fold (60°)"]);
+                let correctOpt = `${GROUPS[vGroup].rot}-fold (${360/GROUPS[vGroup].rot}°)`;
+                if(!options.includes(correctOpt)) options[0] = correctOpt; // Ensure correct is in options
+                options = shuffle(options);
+                
+                let correctGroup = vGroup;
+                explanation = `Ground Truth: ${vGroup} has a rotation order of ${GROUPS[vGroup].rot}.`;
+                let explanationText = state.game === 1 && GROUPS[correctGroup].skeletalDesc ? GROUPS[correctGroup].skeletalDesc : (GROUPS[correctGroup].detailedDesc || `The correct answer is ${correctGroup}. It features ${GROUPS[correctGroup].desc}`);
+                
+                return { text: questionText, hasVisual, svg, options, correct: correctOpt, explanation, explanationText, points: state.game <= 3 ? 2 : 3 };
+            }
+            else {
+                // Phase 3: Pure Theory (100+ variations via templates)
+                hasVisual = false;
+                
+                const templates = [
+                    {
+                        q: `Which group belongs to the ${data.system} system and features ${data.rot}-fold rotation?`,
+                        ans: targetGroup,
+                        wrongs: allGroups.filter(g => GROUPS[g].system !== data.system || GROUPS[g].rot !== data.rot)
+                    },
+                    {
+                        q: `If a phase transition causes a crystal to lose all mirrors but keep its ${data.rot}-fold rotation, which of these could be the resulting group?`,
+                        ans: allGroups.find(g => GROUPS[g].rot === data.rot && GROUPS[g].mirrors === 0) || 'p1',
+                        wrongs: allGroups.filter(g => GROUPS[g].mirrors > 0)
+                    },
+                    {
+                        q: `True or False: The ${targetGroup} group belongs to the ${data.system} crystal system.`,
+                        ans: "True",
+                        wrongs: ["False"]
+                    },
+                    {
+                        q: `A material scientist identifies a lattice with ${data.mirrors} mirror axes and ${data.glides} glide axes. What is the group?`,
+                        ans: targetGroup,
+                        wrongs: allGroups.filter(g => GROUPS[g].mirrors !== data.mirrors || GROUPS[g].glides !== data.glides)
+                    }
+                ];
+
+                const t = pick(templates);
+                questionText = t.q;
+                let wrongs = shuffle(t.wrongs).slice(0, 3);
+                options = shuffle([t.ans, ...wrongs]);
+                explanation = `Ground Truth: ${targetGroup} is in the ${data.system} system. Rotations: ${data.rot}. Mirrors: ${data.mirrors}. Glides: ${data.glides}.`;
+                let correctGroup = targetGroup;
+                let explanationText = state.game === 1 && GROUPS[correctGroup].skeletalDesc ? GROUPS[correctGroup].skeletalDesc : (GROUPS[correctGroup].detailedDesc || `The correct answer is ${correctGroup}. It features ${GROUPS[correctGroup].desc}`);
+
+                return { text: questionText, hasVisual, svg: '', options, correct: t.ans, explanation, explanationText, points: state.game <= 3 ? 2 : 3 };
+            }
+        }
+
+        /* --- GAME LOOP --- */
+
+        function updateUI() {
+            document.getElementById('series-info-text').innerText = `GAME ${state.game} OF 7 | THE SYMMETRY DYNASTY`;
+            document.getElementById('quarter-display').innerText = `Q${state.quarter} | PLAY ${state.play}/${state.playsPerQuarter}`;
+            document.getElementById('score-knicks').innerText = state.knicksScore;
+            document.getElementById('score-lakers').innerText = state.lakersScore;
+            document.getElementById('shot-clock').innerText = state.shotClock;
+            if (state.shotClock <= 5) {
+                document.getElementById('shot-clock').classList.add('warning');
+            } else {
+                document.getElementById('shot-clock').classList.remove('warning');
+            }
+
+            if(state.game >= 5) {
+                document.body.classList.add('elite-theme');
+                document.getElementById('series-info-text').innerText = `GAME ${state.game} OF 7 | ALL-STAR ELITE EDITION`;
+            } else {
+                document.body.classList.remove('elite-theme');
+            }
+        }
+
+        function toggleTimeout() {
+            state.isPaused = !state.isPaused;
+            const btn = document.getElementById('btn-timeout');
+            if (state.isPaused) {
+                btn.innerText = "▶️ Resume";
+                btn.style.background = "#F58426"; // Knicks orange
+            } else {
+                btn.innerText = "⏸️ Time-out";
+                btn.style.background = "#333";
+            }
+        }
+
+        function startShotClock() {
+            clearInterval(state.timerInterval);
+            state.shotClock = 24;
+            state.isPaused = false;
+            const btnTimeout = document.getElementById('btn-timeout');
+            if(btnTimeout) {
+                btnTimeout.innerText = "⏸️ Time-out";
+                btnTimeout.style.background = "#333";
+            }
+            updateUI();
+            state.timerInterval = setInterval(() => {
+                if (state.isPaused) return;
+                state.shotClock--;
+                updateUI();
+                if (state.shotClock <= 0) {
+                    clearInterval(state.timerInterval);
+                    handleTimeout();
                 }
             }, 1000);
         }
 
-        function updateTimerDisplay() {
-            const timerEl = document.getElementById('shot-clock');
-            timerEl.innerText = timeLeft.toString().padStart(2, '0');
-            if (timeLeft <= 5) {
-                timerEl.classList.add('warning');
-            } else {
-                timerEl.classList.remove('warning');
-            }
+        function stopShotClock() {
+            clearInterval(state.timerInterval);
         }
 
-        function handleViolation() {
-            const feedback = document.getElementById('feedback');
-            const grid = document.getElementById('options-grid');
-            const patternContainer = document.getElementById('pattern-container');
-            const q = questions[currentQuestionIndex];
+        function handleTimeout() {
+            disableOptions();
+            state.lakersScore += 2;
+            state.quarterLakers += 2;
             
-            grid.style.display = 'none';
-            patternContainer.style.display = 'none';
-            feedback.style.display = 'block';
+            const d = state.currentPlayData;
+            const randomMsg = commentaryPool.timeout[Math.floor(Math.random() * commentaryPool.timeout.length)];
+            showCommentary(randomMsg, `<strong>Correct Answer:</strong> ${d.correct}<br><em>${d.explanation}</em>`, "lakers");
             
-            lakersScore += 2;
-            feedback.className = 'feedback brick';
-            feedback.innerText = `SHOT CLOCK VIOLATION! Lakers get the ball! You ran out of time. (Correct: ${q.correct})`;
+            // Populate explanation modal
+            document.getElementById('btn-explain').style.display = 'inline-block';
             
-            updateScore();
-            document.getElementById('next-btn').style.display = 'block';
+            preloadNextPlay();
+            updateUI();
         }
 
-        function showQuestion() {
-            const q = questions[currentQuestionIndex];
-            const patternContainer = document.getElementById('pattern-container');
-            
-            document.getElementById('level-indicator').innerText = `Level ${q.level}: ${q.level === 1 ? 'Pure Recognition' : q.level === 2 ? 'All-Star Operations' : 'The Finals'}`;
-            document.getElementById('question-text').innerText = q.text;
-            
-            if (q.level === 1) {
-                patternContainer.style.display = 'flex';
-                patternContainer.innerHTML = generatePatternSVG(q.correct);
-            } else {
-                patternContainer.style.display = 'none';
-            }
+        function disableOptions() {
+            const btns = document.querySelectorAll('.options .btn');
+            btns.forEach(b => b.disabled = true);
+        }
 
-            const grid = document.getElementById('options-grid');
-            grid.innerHTML = '';
-            q.options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                // Add * for testing purposes
-                btn.innerText = opt === q.correct ? `${opt} *` : opt;
-                btn.onclick = () => handleAnswer(opt);
-                grid.appendChild(btn);
+        function showCommentary(title, text, teamClass) {
+            const overlay = document.getElementById('commentary-overlay');
+            const card = document.getElementById('commentary-card');
+            const titleEl = document.getElementById('commentary-title');
+            const btn = document.getElementById('next-btn');
+            
+            overlay.style.display = 'flex';
+            
+            // Reset card classes
+            card.className = 'popup-card';
+            btn.className = 'overlay-btn';
+            
+            if (teamClass === 'knicks') {
+                card.classList.add('knicks-theme');
+                btn.classList.add('knicks-btn');
+            } else if (teamClass === 'lakers') {
+                card.classList.add('lakers-theme');
+                btn.classList.add('lakers-btn');
+            }
+            
+            titleEl.innerText = title;
+            titleEl.className = `overlay-title text-${teamClass}`;
+            document.getElementById('commentary-text').innerHTML = text;
+        }
+
+        async function svgToBase64(svgString) {
+            return new Promise((resolve, reject) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 400;
+                canvas.height = 400;
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                let modifiedSvg = svgString;
+                if (!modifiedSvg.includes('width=')) {
+                    modifiedSvg = modifiedSvg.replace('<svg ', '<svg width="400" height="400" ');
+                }
+                
+                const blob = new Blob([modifiedSvg], {type: 'image/svg+xml;charset=utf-8'});
+                const url = URL.createObjectURL(blob);
+                
+                img.onload = () => {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, 400, 400);
+                    URL.revokeObjectURL(url);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                    resolve(dataUrl.split(',')[1]);
+                };
+                img.onerror = (e) => {
+                    console.error("SVG to Image conversion failed", e);
+                    reject(e);
+                };
+                img.src = url;
             });
-
-            document.getElementById('feedback').style.display = 'none';
-            document.getElementById('next-btn').style.display = 'none';
-            grid.style.display = 'grid';
-            
-            startTimer();
         }
 
-        function handleAnswer(selected) {
-            clearInterval(timerInterval);
-            const q = questions[currentQuestionIndex];
-            const feedback = document.getElementById('feedback');
-            const grid = document.getElementById('options-grid');
-            const patternContainer = document.getElementById('pattern-container');
-            
-            grid.style.display = 'none';
-            patternContainer.style.display = 'none';
-            feedback.style.display = 'block';
-
-            if (selected === q.correct) {
-                knicksScore += 3;
-                feedback.className = 'feedback swish';
-                feedback.innerText = `SWISH! Knicks score! ${q.correct}: ${GROUND_TRUTH.find(g => g.id === q.correct).description}`;
-            } else {
-                lakersScore += 2;
-                feedback.className = 'feedback brick';
-                feedback.innerText = `BRICK! LeBron James scores! (Correct: ${q.correct} - ${GROUND_TRUTH.find(g => g.id === q.correct).description})`;
+        async function validateWithGemini(svgString, group) {
+            const apiKey = sessionStorage.getItem('GEMINI_API_KEY');
+            if (!apiKey) {
+                console.warn("No API key found, skipping Gemini validation");
+                return true;
             }
 
-            updateScore();
-            document.getElementById('next-btn').style.display = 'block';
-        }
-
-        function updateScore() {
-            document.getElementById('knicks-score').innerText = knicksScore.toString().padStart(2, '0');
-            document.getElementById('lakers-score').innerText = lakersScore.toString().padStart(2, '0');
-        }
-
-        document.getElementById('next-btn').onclick = () => {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
-                showQuestion();
-            } else {
-                showGameOver();
+            try {
+                const base64Data = await svgToBase64(svgString);
+                const ai = new GoogleGenAI({ apiKey: apiKey });
+                
+                const prompt = `You are an expert crystallographer. Analyze this repeating pattern. Does this pattern strictly belong to the Hermann-Mauguin wallpaper group ${group}? Respond with ONLY 'YES' or 'NO'.`;
+                
+                const response = await ai.models.generateContent({
+                    model: "gemini-3-flash-preview",
+                    contents: {
+                        parts: [
+                            { text: prompt },
+                            { inlineData: { mimeType: "image/jpeg", data: base64Data } }
+                        ]
+                    }
+                });
+                
+                const text = response.text.trim().toUpperCase();
+                console.log(`Gemini validation for ${group}: ${text}`);
+                return text.includes('YES');
+            } catch (e) {
+                console.error("Gemini API Error:", e);
+                return false; // MUST NOT FALLBACK TO TRUE, keep trying until YES
             }
-        };
-
-        function showGameOver() {
-            document.getElementById('level-indicator').style.display = 'none';
-            document.getElementById('question-text').style.display = 'none';
-            document.getElementById('options-grid').style.display = 'none';
-            document.getElementById('feedback').style.display = 'none';
-            document.getElementById('next-btn').style.display = 'none';
-            
-            const gameOver = document.getElementById('game-over');
-            gameOver.style.display = 'block';
-            
-            const result = document.getElementById('final-result');
-            if (knicksScore > lakersScore) {
-                result.innerText = "KNICKS WIN THE CHAMPIONSHIP!";
-                result.style.color = "var(--knicks-orange)";
-            } else if (lakersScore > knicksScore) {
-                result.innerText = "LAKERS TAKE THE RING!";
-                result.style.color = "var(--lakers-gold)";
-            } else {
-                result.innerText = "IT'S A DRAW! OVERTIME?";
-            }
-            
-            document.getElementById('final-stats').innerText = `Final Score: Knicks ${knicksScore} - Lakers ${lakersScore}`;
         }
 
-        function generatePatternSVG(groupId) {
-            const colors = ['#F58426', '#006BB6', '#552583', '#FDB927'];
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            
-            let svg = `<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-                <rect width="200" height="100" fill="#f0f0f0" />`;
+        function preloadNextPlay(force = false) {
+            state.preloadedPlayData = null;
+            if (!force) {
+                if (state.isAndOne) {
+                    state.preloadedPlayPromise = null;
+                    return;
+                }
+                if (state.play + 1 > state.playsPerQuarter) {
+                    state.preloadedPlayPromise = null;
+                    return;
+                }
+            }
 
-            const motif = `<path d="M 5,5 L 15,5 L 10,15 Z" fill="${color}" stroke="#000" stroke-width="1" />`;
-            
-            // Grid spacing
-            const dx = 40;
-            const dy = 40;
-            
-            for (let i = 0; i < 6; i++) {
-                for (let j = 0; j < 4; j++) {
-                    const x = i * dx;
-                    const y = j * dy;
+            state.preloadedPlayPromise = (async () => {
+                let isValidated = false;
+                let playData = null;
+
+                while (!isValidated) {
+                    playData = generatePlay();
                     
-                    // Base motif
-                    svg += `<g transform="translate(${x}, ${y})">${motif}</g>`;
+                    if (playData.hasVisual) {
+                        const isGeminiApproved = await validateWithGemini(playData.svg, playData.correct);
+                        if (isGeminiApproved) {
+                            isValidated = true;
+                        } else {
+                            console.warn(`Hallucination rejected by Gemini for group ${playData.correct}. Regenerating...`);
+                        }
+                    } else {
+                        isValidated = true;
+                    }
+                }
+                state.preloadedPlayData = playData;
+                return playData;
+            })();
+        }
+
+        async function loadPlay() {
+            document.getElementById('commentary-overlay').style.display = 'none';
+            document.getElementById('btn-explain').style.display = 'none';
+            state.isAndOne = false;
+
+            // Hide previous play elements
+            document.getElementById('visual-area').style.display = 'none';
+            document.getElementById('options-area').innerHTML = '';
+            document.getElementById('question-text').innerText = 'Loading play...';
+
+            let playData = null;
+
+            if (state.preloadedPlayData) {
+                // If we have a resolved preloaded play, use it instantly
+                playData = state.preloadedPlayData;
+                state.preloadedPlayData = null;
+                state.preloadedPlayPromise = null;
+            } else if (state.preloadedPlayPromise) {
+                // If we have a preloaded promise but it's not resolved yet, wait for it
+                document.getElementById('loading-overlay').style.display = 'flex';
+                playData = await state.preloadedPlayPromise;
+                state.preloadedPlayPromise = null;
+                state.preloadedPlayData = null;
+            } else {
+                let isValidated = false;
+                let attempts = 0;
+
+                document.getElementById('loading-overlay').style.display = 'flex';
+
+                while (!isValidated && attempts < 3) {
+                    attempts++;
+                    playData = generatePlay();
                     
-                    // Add symmetry-specific variations
-                    if (groupId === 'p2') {
-                        svg += `<g transform="translate(${x}, ${y}) rotate(180, 20, 20)">${motif}</g>`;
-                    } else if (groupId === 'pm') {
-                        svg += `<g transform="translate(${x}, ${y}) scale(-1, 1) translate(-40, 0)">${motif}</g>`;
-                    } else if (groupId === 'pg') {
-                        if (i % 2 === 1) svg += `<g transform="translate(${x}, ${y}) scale(-1, 1) translate(-40, 20)">${motif}</g>`;
-                    } else if (groupId === 'pmm') {
-                        svg += `<g transform="translate(${x}, ${y}) scale(-1, 1) translate(-40, 0)">${motif}</g>`;
-                        svg += `<g transform="translate(${x}, ${y}) scale(1, -1) translate(0, -40)">${motif}</g>`;
-                        svg += `<g transform="translate(${x}, ${y}) scale(-1, -1) translate(-40, -40)">${motif}</g>`;
-                    } else if (groupId === 'p4') {
-                        svg += `<g transform="translate(${x}, ${y}) rotate(90, 20, 20)">${motif}</g>`;
-                        svg += `<g transform="translate(${x}, ${y}) rotate(180, 20, 20)">${motif}</g>`;
-                        svg += `<g transform="translate(${x}, ${y}) rotate(270, 20, 20)">${motif}</g>`;
-                    } else if (groupId === 'p3') {
-                        svg += `<g transform="translate(${x}, ${y}) rotate(120, 20, 20)">${motif}</g>`;
-                        svg += `<g transform="translate(${x}, ${y}) rotate(240, 20, 20)">${motif}</g>`;
-                    } else if (groupId === 'p6') {
-                        for (let angle = 60; angle < 360; angle += 60) {
-                            svg += `<g transform="translate(${x}, ${y}) rotate(${angle}, 20, 20)">${motif}</g>`;
+                    if (playData.hasVisual) {
+                        const isGeminiApproved = await validateWithGemini(playData.svg, playData.correct);
+                        if (isGeminiApproved) {
+                            isValidated = true;
+                        } else {
+                            console.warn(`Hallucination rejected by Gemini for group ${playData.correct}. Regenerating...`);
                         }
-                    } else if (groupId === 'p3m1' || groupId === 'p31m') {
-                        svg += `<g transform="translate(${x}, ${y}) rotate(120, 20, 20)">${motif}</g>`;
-                        svg += `<g transform="translate(${x}, ${y}) rotate(240, 20, 20)">${motif}</g>`;
-                        svg += `<g transform="translate(${x}, ${y}) scale(-1, 1) translate(-40, 0)">${motif}</g>`;
-                    } else if (groupId === 'cm') {
-                        svg += `<g transform="translate(${x+20}, ${y+20})">${motif}</g>`;
-                    } else if (groupId === 'pmg') {
-                        svg += `<g transform="translate(${x}, ${y}) scale(-1, 1) translate(-40, 0)">${motif}</g>`;
-                        if (i % 2 === 1) svg += `<g transform="translate(${x}, ${y}) rotate(180, 20, 20)">${motif}</g>`;
-                    } else if (groupId === 'pgg') {
-                        if (i % 2 === 1) svg += `<g transform="translate(${x}, ${y}) scale(-1, 1) translate(-40, 20)">${motif}</g>`;
-                        if (j % 2 === 1) svg += `<g transform="translate(${x}, ${y}) scale(1, -1) translate(20, -40)">${motif}</g>`;
-                    } else if (groupId === 'p4m') {
-                        for (let angle = 0; angle < 360; angle += 90) {
-                            svg += `<g transform="translate(${x}, ${y}) rotate(${angle}, 20, 20)">${motif}</g>`;
-                            svg += `<g transform="translate(${x}, ${y}) rotate(${angle}, 20, 20) scale(-1, 1) translate(-40, 0)">${motif}</g>`;
-                        }
-                    } else if (groupId === 'p6m') {
-                        for (let angle = 0; angle < 360; angle += 60) {
-                            svg += `<g transform="translate(${x}, ${y}) rotate(${angle}, 20, 20)">${motif}</g>`;
-                            svg += `<g transform="translate(${x}, ${y}) rotate(${angle}, 20, 20) scale(-1, 1) translate(-40, 0)">${motif}</g>`;
-                        }
+                    } else {
+                        isValidated = true;
                     }
                 }
             }
+
+            document.getElementById('loading-overlay').style.display = 'none';
+            state.currentPlayData = playData;
+            const d = state.currentPlayData;
+
+            document.getElementById('question-text').innerText = d.text;
             
-            svg += `</svg>`;
-            return svg;
+            const vis = document.getElementById('visual-area');
+            if(d.hasVisual) {
+                vis.style.display = 'flex';
+                vis.innerHTML = d.svg;
+            } else {
+                vis.style.display = 'none';
+            }
+
+            const opts = document.getElementById('options-area');
+            opts.innerHTML = '';
+            d.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                // Visual Answer Key (Debug Mode)
+                btn.innerText = opt === d.correct ? opt + " *" : opt;
+                btn.onclick = () => handleAnswer(opt);
+                opts.appendChild(btn);
+            });
+
+            updateUI();
+            startShotClock();
         }
 
-        initGame();
+        function handleAnswer(selected) {
+            stopShotClock();
+            disableOptions();
+            const d = state.currentPlayData;
+            const isCorrect = selected === d.correct;
+
+            // Visual Feedback
+            const btns = document.querySelectorAll('.options .btn');
+            btns.forEach(b => {
+                const cleanText = b.innerText.replace(" *", "");
+                if (cleanText === d.correct) {
+                    b.style.background = "#34C759"; // Green for correct
+                } else if (cleanText === selected && !isCorrect) {
+                    b.style.background = "#FF3B30"; // Red for wrong
+                }
+            });
+
+            if(isCorrect) {
+                state.knicksScore += d.points;
+                state.quarterKnicks += d.points;
+                
+                // AND-ONE Logic
+                if (d.points === 2 && Math.random() < 0.3) {
+                    state.isAndOne = true;
+                    const randomMsg = commentaryPool.andOne[Math.floor(Math.random() * commentaryPool.andOne.length)];
+                    showCommentary(randomMsg, `<strong>AND ONE!</strong><br><em>${d.explanation}</em>`, "knicks");
+                    document.getElementById('next-btn').innerText = "Shoot Free Throw";
+                } else {
+                    const array = d.points === 3 ? commentaryPool.knicks3pt : commentaryPool.knicks2pt;
+                    const randomMsg = array[Math.floor(Math.random() * array.length)];
+                    showCommentary(randomMsg, `<em>${d.explanation}</em>`, "knicks");
+                    document.getElementById('next-btn').innerText = "Next Play";
+                }
+            } else {
+                state.lakersScore += d.points; // Lakers get points on miss
+                state.quarterLakers += d.points;
+                const randomMsg = commentaryPool.lakersScore[Math.floor(Math.random() * commentaryPool.lakersScore.length)];
+                showCommentary(randomMsg, `<strong>Correct Answer:</strong> ${d.correct}<br><em>${d.explanation}</em>`, "lakers");
+                document.getElementById('next-btn').innerText = "Next Play";
+            }
+            
+            // Populate explanation modal
+            document.getElementById('btn-explain').style.display = 'inline-block';
+            
+            preloadNextPlay();
+            updateUI();
+        }
+
+        function loadFreeThrow() {
+            document.getElementById('commentary-overlay').style.display = 'none';
+            document.getElementById('btn-explain').style.display = 'none';
+
+            // Generate a simple True/False question
+            const allGroups = Object.keys(GROUPS);
+            const targetGroup = pick(allGroups);
+            const data = GROUPS[targetGroup];
+            const isTrue = Math.random() > 0.5;
+            
+            let questionText = "";
+            if (isTrue) {
+                questionText = `True or False: ${targetGroup} has ${data.rot}-fold rotation.`;
+            } else {
+                let wrongRot = data.rot === 4 ? 6 : (data.rot === 6 ? 4 : data.rot + 1);
+                questionText = `True or False: ${targetGroup} has ${wrongRot}-fold rotation.`;
+            }
+
+            state.currentPlayData = {
+                text: questionText,
+                hasVisual: false,
+                options: ["True", "False"],
+                correct: isTrue ? "True" : "False",
+                explanation: `Ground Truth: ${targetGroup} has ${data.rot}-fold rotation.`,
+                explanationText: GROUPS[targetGroup].detailedDesc || `The correct answer is ${targetGroup}. It features ${GROUPS[targetGroup].desc}`,
+                points: 1
+            };
+
+            const d = state.currentPlayData;
+            document.getElementById('question-text').innerText = d.text;
+            document.getElementById('visual-area').style.display = 'none';
+
+            const opts = document.getElementById('options-area');
+            opts.innerHTML = '';
+            d.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                // Visual Answer Key (Debug Mode)
+                btn.innerText = opt === d.correct ? opt + " *" : opt;
+                btn.onclick = () => handleFreeThrowAnswer(opt);
+                opts.appendChild(btn);
+            });
+
+            // 10 second shot clock for free throw
+            clearInterval(state.timerInterval);
+            state.shotClock = 10;
+            state.isPaused = false;
+            const btnTimeout = document.getElementById('btn-timeout');
+            if(btnTimeout) {
+                btnTimeout.innerText = "⏸️ Time-out";
+                btnTimeout.style.background = "#333";
+            }
+            updateUI();
+            state.timerInterval = setInterval(() => {
+                if (state.isPaused) return;
+                state.shotClock--;
+                updateUI();
+                if (state.shotClock <= 0) {
+                    clearInterval(state.timerInterval);
+                    handleFreeThrowTimeout();
+                }
+            }, 1000);
+        }
+
+        function handleFreeThrowAnswer(selected) {
+            stopShotClock();
+            disableOptions();
+            const d = state.currentPlayData;
+            const isCorrect = selected === d.correct;
+
+            // Visual Feedback
+            const btns = document.querySelectorAll('.options .btn');
+            btns.forEach(b => {
+                const cleanText = b.innerText.replace(" *", "");
+                if (cleanText === d.correct) {
+                    b.style.background = "#34C759"; // Green for correct
+                } else if (cleanText === selected && !isCorrect) {
+                    b.style.background = "#FF3B30"; // Red for wrong
+                }
+            });
+
+            if (isCorrect) {
+                state.knicksScore += 1;
+                state.quarterKnicks += 1;
+                const randomMsg = commentaryPool.freeThrowMake[Math.floor(Math.random() * commentaryPool.freeThrowMake.length)];
+                showCommentary(randomMsg, `<em>${d.explanation}</em>`, "knicks");
+            } else {
+                const randomMsg = commentaryPool.freeThrowMiss[Math.floor(Math.random() * commentaryPool.freeThrowMiss.length)];
+                showCommentary(randomMsg, `<strong>Correct Answer:</strong> ${d.correct}<br><em>${d.explanation}</em>`, "lakers");
+            }
+            document.getElementById('next-btn').innerText = "Next Play";
+            state.isAndOne = false;
+            
+            // Populate explanation modal
+            document.getElementById('btn-explain').style.display = 'inline-block';
+            
+            preloadNextPlay();
+            updateUI();
+        }
+
+        function handleFreeThrowTimeout() {
+            disableOptions();
+            const d = state.currentPlayData;
+            const randomMsg = commentaryPool.freeThrowTimeout[Math.floor(Math.random() * commentaryPool.freeThrowTimeout.length)];
+            showCommentary(randomMsg, `<strong>Correct Answer:</strong> ${d.correct}<br><em>${d.explanation}</em>`, "lakers");
+            document.getElementById('next-btn').innerText = "Next Play";
+            state.isAndOne = false;
+            
+            // Populate explanation modal
+            document.getElementById('btn-explain').style.display = 'inline-block';
+            
+            preloadNextPlay();
+            updateUI();
+        }
+
+        function toggleExplanation() {
+            const modal = document.getElementById('explanation-modal');
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
+            } else {
+                // Format explanation with bullet points
+                const content = document.getElementById('playbook-text');
+                const visual = document.getElementById('playbook-visual');
+                const rawText = state.currentPlayData.explanationText;
+                
+                if (rawText.startsWith("Analyse")) {
+                    const sentences = rawText.replace(/^Analyse[^\:]*\:\s*/, "").split(". ").filter(s => s.trim().length > 0);
+                    let html = "<div style='display: flex; flex-direction: column; gap: 10px;'>";
+                    sentences.forEach(s => {
+                        let clean = s.trim();
+                        if (!clean.endsWith(".")) clean += ".";
+                        html += `<div>${clean}</div>`;
+                    });
+                    html += "</div>";
+                    content.innerHTML = html;
+                } else {
+                    content.innerHTML = `<div>${rawText}</div>`;
+                }
+                
+                if (state.currentPlayData.hasVisual && state.currentPlayData.svg) {
+                    visual.style.display = 'flex';
+                    // Clone the SVG and ensure it scales correctly
+                    visual.innerHTML = state.currentPlayData.svg;
+                } else {
+                    visual.style.display = 'flex';
+                    visual.innerHTML = '<div style="font-size: 3rem; text-align: center;">📋<br><span style="font-size: 1rem; color: #aaa; font-family: sans-serif;">Tactical Play</span></div>';
+                }
+                
+                modal.style.display = 'flex';
+            }
+        }
+
+        function advanceGame() {
+            document.getElementById('explanation-modal').style.display = 'none';
+            if (state.isAndOne) {
+                loadFreeThrow();
+                return;
+            }
+
+            state.play++;
+            if(state.play > state.playsPerQuarter) {
+                endQuarter();
+            } else {
+                loadPlay();
+            }
+        }
+
+        function endQuarter() {
+            const overlay = document.getElementById('transition-overlay');
+            const title = document.getElementById('transition-title');
+            const sub = document.getElementById('transition-subtext');
+
+            overlay.style.display = 'flex';
+
+            if(state.quarterKnicks > state.quarterLakers) {
+                state.quartersWon++;
+                title.innerText = "KNICKS WIN THE QUARTER!";
+                title.style.color = "var(--knicks-orange)";
+                sub.innerText = `Knicks outscored Lakers ${state.quarterKnicks} to ${state.quarterLakers}.`;
+            } else if (state.quarterLakers > state.quarterKnicks) {
+                title.innerText = "LAKERS TAKE THE QUARTER!";
+                title.style.color = "var(--lakers-gold)";
+                sub.innerText = `Lakers outscored Knicks ${state.quarterLakers} to ${state.quarterKnicks}.`;
+            } else {
+                title.innerText = "QUARTER TIED!";
+                title.style.color = "#fff";
+                sub.innerText = `Both teams scored ${state.quarterKnicks}.`;
+            }
+
+            if (state.quarter < 4) {
+                preloadNextPlay(true);
+            }
+        }
+
+        function startNextPhase() {
+            document.getElementById('transition-overlay').style.display = 'none';
+
+            state.quarter++;
+            if(state.quarter > 4) {
+                endGame();
+            } else {
+                state.play = 1;
+                state.quarterKnicks = 0;
+                state.quarterLakers = 0;
+                loadPlay();
+            }
+        }
+
+        function endGame() {
+            const overlay = document.getElementById('transition-overlay');
+            const title = document.getElementById('transition-title');
+            const sub = document.getElementById('transition-subtext');
+            const btn = overlay.querySelector('button');
+
+            overlay.style.display = 'flex';
+
+            if(state.quartersWon >= 3 || (state.quartersWon === 2 && state.knicksScore > state.lakersScore)) {
+                title.innerText = `KNICKS WIN GAME ${state.game}!`;
+                title.style.color = "var(--knicks-orange)";
+                sub.innerText = `Advancing to Game ${state.game + 1}...`;
+                btn.innerText = "Next Game";
+                btn.onclick = () => {
+                    state.game++;
+                    if(state.game > 7) {
+                        title.innerText = "NBA CHAMPIONS!";
+                        sub.innerText = "You have mastered the 17 Wallpaper Groups!";
+                        btn.innerText = "Play Again";
+                        btn.onclick = () => location.reload();
+                    } else {
+                        state.quarter = 1;
+                        state.play = 1;
+                        state.knicksScore = 0;
+                        state.lakersScore = 0;
+                        state.quarterKnicks = 0;
+                        state.quarterLakers = 0;
+                        state.quartersWon = 0;
+                        overlay.style.display = 'none';
+                        loadPlay();
+                    }
+                };
+            } else {
+                title.innerText = `LAKERS WIN GAME ${state.game}`;
+                title.style.color = "var(--lakers-gold)";
+                sub.innerText = "Series over. Back to the practice facility.";
+                btn.innerText = "Restart Series";
+                btn.onclick = () => location.reload();
+            }
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('api-key-input').value.trim();
+            if (key) {
+                sessionStorage.setItem('GEMINI_API_KEY', key);
+                document.getElementById('api-key-overlay').style.display = 'none';
+                loadPlay();
+            } else {
+                alert("Please enter a valid API key.");
+            }
+        }
+
+        // Expose to window
+        window.saveApiKey = saveApiKey;
+        window.toggleTimeout = toggleTimeout;
+        window.advanceGame = advanceGame;
+        window.startNextPhase = startNextPhase;
+        window.toggleExplanation = toggleExplanation;
+
+        // Boot
+        window.onload = () => {
+            const storedKey = sessionStorage.getItem('GEMINI_API_KEY');
+            if (storedKey) {
+                loadPlay();
+            } else {
+                document.getElementById('api-key-overlay').style.display = 'flex';
+            }
+        };
+
     </script>
 </body>
 </html>
